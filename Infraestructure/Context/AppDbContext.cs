@@ -1,20 +1,44 @@
 using Core.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Design;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.Json;
 
 namespace Infraestructure.Context;
 
+public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
+{
+
+    public AppDbContext CreateDbContext(string[] args)
+    {
+        var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
+        var basePath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "../Api"));
+
+        Console.WriteLine($"Base Path: {basePath}");
+
+        IConfigurationRoot configuration = new ConfigurationBuilder()
+            .SetBasePath(basePath)
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+            .Build();
+
+        optionsBuilder.UseNpgsql(configuration.GetConnectionString("DefaultConnection")); 
+
+        return new AppDbContext(optionsBuilder.Options);
+    }
+}
+
 public class AppDbContext : IdentityDbContext<AppUser>
 {
-    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
-    {
+    public AppDbContext() { }
+    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
-    }
+    public DbSet<Animal> Animals { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
-        base.OnModelCreating(builder);
         SetupDatabaseModels(builder);
+        base.OnModelCreating(builder);
     }
 
 
@@ -42,18 +66,43 @@ public class AppDbContext : IdentityDbContext<AppUser>
                     .IsRequired()
                     .HasMaxLength(50);
             });
-            e.Navigation(e => e.Requirements).Metadata.SetField("_requierements");
 
             e.OwnsOne(a => a.Breed, b =>
             {
-                b.ToTable("breeds");
                 b.WithOwner().HasForeignKey("animal_id");
                 b.Property(b => b.Value)
                     .HasColumnName("breed")
                     .IsRequired()
                     .HasMaxLength(30);
+                b.HasIndex(b => b.Value);
             });
+
+            e.OwnsOne(a => a.AnimalType, t =>
+            {
+                t.Property(t => t.Value)
+                    .HasColumnName("type")
+                    .IsRequired()
+                    .HasMaxLength(20);
+                t.WithOwner()
+                    .HasForeignKey("animal_id");
+                t.HasIndex(t => t.Value);
+            });
+
+            e.HasOne(a => a.Owner)
+                .WithMany(a => a.Animals)
+                .HasForeignKey(a => a.OwnerId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .IsRequired();
+
+            //Propiedades de navegacion
+            e.Navigation(e => e.AnimalType).Metadata.SetField("_type");
             e.Navigation(e => e.Breed).Metadata.SetField("_breed");
+            e.Navigation(e => e.Requirements).Metadata.SetField("_requierements");
+
+            e.HasIndex(a => a.Name);
+            e.HasIndex(a => a.Age);
+            e.HasIndex(a => a.OwnerId);
+
         });
     }
 }
