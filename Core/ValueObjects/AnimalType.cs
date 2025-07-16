@@ -12,7 +12,7 @@ public class AnimalType : IEquatable<AnimalType>
         Value = value;
     }
 
-    public TaskResult<AnimalType> Create(string value)
+    public static TaskResult<AnimalType> Create(string value)
     {
         if (string.IsNullOrEmpty(value))
             return TaskResult<AnimalType>.FromFailure("Type must not be empty");
