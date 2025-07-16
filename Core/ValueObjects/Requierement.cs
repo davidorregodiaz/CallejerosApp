@@ -25,5 +25,6 @@ public sealed class Requierement : IEquatable<Requierement>
 
     public bool Equals(Requierement? other) => other is not null && Value.Equals(other.Value, StringComparison.OrdinalIgnoreCase);
     public override bool Equals(object? obj) => obj is Requierement other && Equals(other);
-    public override int GetHashCode() => Value.GetHashCode();
+    public override int GetHashCode() => Value.ToLowerInvariant().GetHashCode();
+
 }
