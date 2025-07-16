@@ -3,9 +3,9 @@ using Application.Interfaces.Services;
 using Core.Models;
 using Infraestructure.Context;
 using Infraestructure.Services;
+using Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.CookiePolicy;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
@@ -21,9 +21,9 @@ public static class AppExtensions
         {
             options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
         });
-        
+
         //Identity
-        builder.Services.AddIdentityCore<AppUser>(options => 
+        builder.Services.AddIdentityCore<AppUser>(options =>
             {
                 options.SignIn.RequireConfirmedAccount = false;
                 options.Password.RequireDigit = true;
@@ -56,14 +56,16 @@ public static class AppExtensions
                         Encoding.UTF8.GetBytes(builder.Configuration["Jwt:SigningKey"]))
                 };
             });
-        
-        builder.Services.Configure<CookiePolicyOptions>(options => {
-            options.MinimumSameSitePolicy = SameSiteMode.Lax; 
-            options.HttpOnly = HttpOnlyPolicy.Always; 
+
+        builder.Services.Configure<CookiePolicyOptions>(options =>
+        {
+            options.MinimumSameSitePolicy = SameSiteMode.Lax;
+            options.HttpOnly = HttpOnlyPolicy.Always;
             options.Secure = CookieSecurePolicy.SameAsRequest;
         });
 
         builder.Services.AddScoped<IAuthService, AuthService>();
         builder.Services.AddScoped<TokenService>();
+        builder.Services.AddScoped<IAnimalService, AnimalService>();
     }
 }
