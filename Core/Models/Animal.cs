@@ -1,5 +1,6 @@
 
 
+using System.Text.Json.Serialization;
 using Core.ValueObjects;
 using Shared;
 
@@ -8,27 +9,36 @@ namespace Core.Models;
 public class Animal
 {
     public Guid Id { get; set; }
-    public string Name { get; set; }
+    public string? Name { get; set; }
     public int Age { get; set; }
-    private Breed _breed;
-    public Breed Breed => _breed;
-    private AnimalType _type;
-    public AnimalType Type => _type;
+    private Breed? _breed;
+    public Breed? Breed => _breed;
+    private AnimalType? _type;
+    public AnimalType? AnimalType => _type;
     private readonly List<Requierement> _requierements = new();
     public IReadOnlyCollection<Requierement> Requirements => _requierements.AsReadOnly();
+    public AppUser Owner { get; set; } 
+    public string OwnerId { get; set; }
+
+    public bool BelongsTo(string userId) => OwnerId == userId;
 
     public TaskResult AddRequierement(string requierement)
     {
+        if (_requierements.Count >= 5)
+            return TaskResult.FromFailure("You can only add 5 requierements");
+
         var requierementResult = Requierement.Create(requierement);
         if (requierementResult.IsSuccessful(out var requierementCreated))
         {
-            if (_requierements.Count() < 5)
-                return TaskResult.FromFailure("You can only add 5 requierements");
-
             if (!_requierements.Contains(requierementCreated))
             {
                 _requierements.Add(requierementCreated);
+                Console.WriteLine(_requierements.Count);
                 return TaskResult.FromSuccess("Requierement added");
+            }
+            else
+            {
+                return TaskResult.FromFailure("Requierement already exists");
             }
         }
         return TaskResult.FromFailure(requierementResult.Message);
@@ -49,6 +59,12 @@ public class Animal
         return TaskResult.FromFailure(requierementResult.Message);
     }
 
+    public void ClearRequierements()
+    {
+        _requierements.Clear();
+    }
+
+
     public TaskResult SetBreed(string breed)
     {
         var breedResult = Breed.Create(breed);
@@ -62,10 +78,10 @@ public class Animal
 
      public TaskResult SetType(string type)
     {
-        var typeResult = Breed.Create(type);
+        var typeResult = AnimalType.Create(type);
         if (typeResult.IsSuccessful(out var typeCreated))
         {
-            _breed = typeCreated;
+            _type = typeCreated;
             return TaskResult.FromSuccess("Type added");
         }
         return TaskResult.FromFailure(typeResult.Message);
