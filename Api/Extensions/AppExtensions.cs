@@ -16,10 +16,20 @@ public static class AppExtensions
     public static void AddAppServices(this WebApplicationBuilder builder)
     {
         builder.Services.AddControllers();
+        builder.Services.AddRazorPages(); // Necesario para Blazor
         builder.Services.AddOpenApi();
         builder.Services.AddDbContext<AppDbContext>(options =>
         {
             options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
+        });
+        
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("AllowBlazorClient",
+                builder => builder
+                    .WithOrigins("https://localhost:7074", "http://localhost:5194") // URLs de tu cliente Blazor
+                    .AllowAnyHeader()
+                    .AllowAnyMethod());
         });
 
         //Identity
