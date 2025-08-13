@@ -25,7 +25,7 @@ public class TokenService
     public TokenService(IConfiguration configuration, UserManager<AppUser> userManager, AppDbContext context)
     {
         _configuration = configuration;
-        this._userManager = userManager;
+        _userManager = userManager;
         _context = context;
     }
 
@@ -39,6 +39,7 @@ public class TokenService
 
         var claims = new[]
         {
+            new Claim(ClaimTypes.Name, user.UserName!),
             new Claim(JwtRegisteredClaimNames.Sub, user.Email!),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
