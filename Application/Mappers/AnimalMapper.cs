@@ -1,7 +1,6 @@
-using System;
-using Application.Dtos;
 using Core.Models;
 using Shared;
+using Shared.Dtos;
 
 namespace Application.Mappers;
 
@@ -16,11 +15,12 @@ public static class AnimalMapper
             animal.Age,
             animal.Breed.Value,
             animal.AnimalType.Value,
+            animal.ImagesPath,
             animal.Requirements.Select(a => a.Value).ToList()
         );
     }
 
-    public static TaskResult<Animal> ToModel(this CreateAnimalDto createAnimalDto,Animal? animalDb)
+    public static TaskResult<Animal> ToModel(this CreateAnimalDto createAnimalDto,Animal? animalDb,List<string>? picturesPaths)
     {
         if (animalDb is null)
         {
@@ -28,7 +28,8 @@ public static class AnimalMapper
             {
                 Age = createAnimalDto.Age,
                 Name = createAnimalDto.Name,
-                OwnerId = createAnimalDto.OwnerId
+                OwnerId = createAnimalDto.OwnerId,
+                ImagesPath = picturesPaths
             };
         }
 
@@ -54,13 +55,7 @@ public static class AnimalMapper
         if (!typeResult.Success)
             return TaskResult<Animal>.FromFailure(typeResult.Message);
 
-        animalDb.ClearRequierements();
-        foreach (var requierement in createAnimalDto.Requierements)
-        {
-            requierementResult = animalDb.AddRequierement(requierement);
-            if (!requierementResult.Success)
-                return TaskResult<Animal>.FromFailure(requierementResult.Message);
-        }
+        
             
         return TaskResult<Animal>.FromData(animalDb);
     }
