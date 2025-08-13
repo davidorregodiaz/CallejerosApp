@@ -1,14 +1,11 @@
-
-
-using Application.Dtos;
-using Core.Models;
+using Shared.Dtos;
 using Shared;
 
 namespace Application.Interfaces.Services;
 
 public interface IAnimalService
 {
-    Task<TaskResult<ResponseAnimalDto>> CreateAnimal(CreateAnimalDto animalDto);
+    Task<TaskResult<ResponseAnimalDto>> CreateAnimal(CreateAnimalDto animalDto,List<string> picturesPaths);
     Task<TaskResult<ResponseAnimalDto>> GetAnimalById(Guid id);
     Task<TaskResult<IEnumerable<ResponseAnimalDto>>> GetAnimals();
     Task<TaskResult> DeleteAnimal(Guid id, string ownerId);
