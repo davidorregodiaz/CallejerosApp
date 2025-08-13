@@ -33,6 +33,10 @@ namespace Infraestructure.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("age");
 
+                    b.PrimitiveCollection<string[]>("ImagesPath")
+                        .IsRequired()
+                        .HasColumnType("text[]");
+
                     b.Property<string>("Name")
                         .HasColumnType("text")
                         .HasColumnName("name");
