@@ -27,11 +27,10 @@ public class AuthController : ControllerBase
             return Results.Ok(new
             {
                 token = token.AccessToken,
-                expires = token.ExpiresIn
+                expiration = token.ExpiresIn
             });
         }
-            
-
+        
         return Results.BadRequest(new { error = result.Message });
     }
 
@@ -67,13 +66,20 @@ public class AuthController : ControllerBase
             return Results.Ok("Token still valid");
 
         Response.Cookies.Delete("refresh_token");
-        Response.Cookies.Append("refresh_token", tokenDto.RefreshToken);
+        SetRefreshTokenCookie(tokenDto.RefreshToken); 
         
         return Results.Ok(new
         {
             token = tokenDto.AccessToken,
             expires = tokenDto.ExpiresIn
         });
+    }
+
+    [AllowAnonymous]
+    [HttpGet("check")]
+    public IActionResult Check()
+    {
+        return User.Identity.IsAuthenticated ? Ok() : Unauthorized();
     }
     
     private void SetRefreshTokenCookie(string token)
