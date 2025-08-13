@@ -19,6 +19,8 @@ public class Animal
     public IReadOnlyCollection<Requierement> Requirements => _requierements.AsReadOnly();
     public AppUser Owner { get; set; } 
     public string OwnerId { get; set; }
+    
+    public ICollection<string> ImagesPath { get; set; } = new List<string>();
 
     public bool BelongsTo(string userId) => OwnerId == userId;
 
