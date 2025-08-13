@@ -1,4 +1,6 @@
-namespace Application.Dtos;
+using Microsoft.AspNetCore.Components.Forms;
+
+namespace Shared.Dtos;
 
 public record CreateAnimalDto(
     string OwnerId,
@@ -6,5 +8,4 @@ public record CreateAnimalDto(
     int Age,
     string Breed,
     string Type,
-    List<string> Requierements 
-){}
+    string Description);
