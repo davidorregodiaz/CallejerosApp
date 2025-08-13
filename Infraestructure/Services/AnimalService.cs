@@ -1,9 +1,9 @@
-using Application.Dtos;
 using Application.Interfaces.Services;
 using Application.Mappers;
 using Infraestructure.Context;
 using Microsoft.EntityFrameworkCore;
 using Shared;
+using Shared.Dtos;
 
 namespace Infrastructure.Services;
 
@@ -17,9 +17,9 @@ public class AnimalService : IAnimalService
         _context = context;
     }
 
-    public async Task<TaskResult<ResponseAnimalDto>> CreateAnimal(CreateAnimalDto animalDto)
+    public async Task<TaskResult<ResponseAnimalDto>> CreateAnimal(CreateAnimalDto animalDto,List<string> picturesPaths)
     {
-        var result = animalDto.ToModel(null);
+        var result = animalDto.ToModel(null,picturesPaths);
         
         if (!result.IsSuccessful(out var animalDb))
             return TaskResult<ResponseAnimalDto>.FromFailure(result.Message);
@@ -121,7 +121,7 @@ public class AnimalService : IAnimalService
 
         if (animalDb is not null)
         {
-            var result = animalDto.ToModel(animalDb);
+            var result = animalDto.ToModel(animalDb,null);
 
             if (!result.IsSuccessful(out var animalUpdated))
                 return TaskResult<ResponseAnimalDto>.FromFailure(result.Message);
