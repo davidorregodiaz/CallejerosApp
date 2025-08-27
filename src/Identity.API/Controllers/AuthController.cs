@@ -25,10 +25,10 @@ public class AuthController : ControllerBase
         if (result.IsSuccessful(out var token))
         {
             Response.Cookies.Append("refresh_token", token.RefreshToken);
-            return Results.Ok(new
+            return Results.Ok(new TokenViewModel
             {
-                token = token.AccessToken,
-                expiration = token.ExpiresIn
+                Token = token.AccessToken,
+                ExpirationMinutes = token.ExpiresIn
             });
         }
         
@@ -43,10 +43,10 @@ public class AuthController : ControllerBase
         if (result.IsSuccessful(out var token))
         {
             Response.Cookies.Append("refresh_token", token.RefreshToken);
-            return Results.Ok(new
+            return Results.Ok(new TokenViewModel
             {
-                token = token.AccessToken,
-                expiration = token.ExpiresIn
+                Token = token.AccessToken,
+                ExpirationMinutes = token.ExpiresIn
             });
         }
         return Results.BadRequest(new { error = result.Message });
@@ -68,10 +68,10 @@ public class AuthController : ControllerBase
 
         SetRefreshTokenCookie(tokenDto.RefreshToken); 
         
-        return Results.Ok(new
+        return Results.Ok(new TokenViewModel
         {
-            token = tokenDto.AccessToken,
-            expiration = tokenDto.ExpiresIn
+            Token = tokenDto.AccessToken,
+            ExpirationMinutes = tokenDto.ExpiresIn
         });
     }
 
@@ -79,7 +79,7 @@ public class AuthController : ControllerBase
     [HttpGet("check")]
     public IActionResult Check()
     {
-        return User.Identity.IsAuthenticated ? Ok() : Unauthorized();
+        return User.Identity!.IsAuthenticated ? Ok() : Unauthorized();
     }
 
     [Authorize]

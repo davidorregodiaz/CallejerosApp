@@ -1,7 +1,8 @@
 
 namespace Identity.API.Models.ViewModels;
 
-public class TokenViewModel
+public record TokenViewModel
 {
-    
+    public string Token { get; init; }
+    public int ExpirationMinutes{ get; init; }
 }
