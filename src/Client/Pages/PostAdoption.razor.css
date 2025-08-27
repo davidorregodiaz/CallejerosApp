@@ -1,0 +1,9 @@
+
+.post-adoption-container{
+    max-width: 640px;
+    min-height: auto;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
