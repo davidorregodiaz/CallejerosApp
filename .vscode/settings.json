@@ -5,5 +5,8 @@
   },
   "[json]": {
     "editor.defaultFormatter": null
+  },
+  "[csharp]": {
+    "editor.defaultFormatter": "ms-dotnettools.csharp"
   }
 }

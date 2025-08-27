@@ -1,0 +1,36 @@
+﻿@page "/"
+@using Client.Components.Home
+@using Client.Utilites
+
+<PageTitle>Home</PageTitle>
+
+
+<div class="" style="opacity: @(_isLoading ? "0" : "1");transition: all 0.3s ease-in-out">
+  <Hero/>
+  <HowItWorks/>
+  <BentoGrid/>
+  <Testimonials/>
+</div>
+
+
+@code
+{
+    [Inject] IJSRuntime Js { get; set; }
+
+    private IJSObjectReference? _module;
+    private bool _isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+      await Task.Delay(50);
+      _isLoading = false;
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _module = await Js.InvokeAsync<IJSObjectReference>("import", "../js/app.js");
+            await _module.InvokeVoidAsync("AnimateDogTracks");
+        }
+    }
+}
