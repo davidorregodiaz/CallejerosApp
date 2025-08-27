@@ -9,7 +9,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Shared;
 using Shared.Dtos;
-using Shared.Utilities;
 
 namespace Identity.API.Services;
 
@@ -32,14 +31,14 @@ public class TokenService
     {
         var securityKey = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes(_configuration["Jwt:SigningKey"]!));
-        
+
         var credentials = new SigningCredentials(
             securityKey, SecurityAlgorithms.HmacSha256);
 
         var claims = new[]
         {
             new Claim(ClaimTypes.Name, user.UserName!),
-            new Claim(ClaimTypes.NameIdentifier, user.Id), 
+            new Claim(ClaimTypes.NameIdentifier, user.Id),
             new Claim(JwtRegisteredClaimNames.Sub, user.Email!),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
@@ -54,7 +53,7 @@ public class TokenService
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
-    
+
     public async Task<string> GenerateRefreshToken(ApplicationUser user)
     {
         var tokenString = Guid.NewGuid().ToString("N");
@@ -66,27 +65,27 @@ public class TokenService
         };
 
         var json = JsonSerializer.Serialize(refreshToken);
-        
+
         await _userManager.RemoveAuthenticationTokenAsync(
-            user, 
-            RefreshTokenProvider, 
+            user,
+            RefreshTokenProvider,
             RefreshTokenName);
-        
+
         await _userManager.SetAuthenticationTokenAsync(
-            user, 
-            RefreshTokenProvider, 
-            RefreshTokenName, 
+            user,
+            RefreshTokenProvider,
+            RefreshTokenName,
             json);
-        
+
         return tokenString;
     }
 
-    public async Task<TokenModel> GenerateTokenDto(ApplicationUser appUser)
+    public async Task<Token> GenerateTokenDto(ApplicationUser appUser)
     {
         var accessToken = GenerateAccessToken(appUser);
         var refreshToken = await GenerateRefreshToken(appUser);
 
-        return new TokenModel
+        return new Token
         {
             AccessToken = accessToken,
             RefreshToken = refreshToken,
@@ -115,19 +114,25 @@ public class TokenService
         return null;
     }
 
-    public async Task<TaskResult<TokenData>> ValidateRefreshToken(string refreshToken,ApplicationUser appUser)
+    public async Task<TaskResult<TokenData>> ValidateRefreshToken(string refreshToken, ApplicationUser appUser)
     {
         //Obtenemos el token del usuario
         var currentToken = await _userManager.GetAuthenticationTokenAsync(appUser, RefreshTokenProvider, RefreshTokenName);
         var tokenData = JsonSerializer.Deserialize<TokenData>(currentToken);
-        
+
         if (tokenData is null || tokenData.Token != refreshToken)
             return TaskResult<TokenData>.FromFailure("Token mismatch");
-        
+
         if (tokenData.Expiration < DateTime.UtcNow)
             return TaskResult<TokenData>.FromFailure("Token expired");
 
         return TaskResult<TokenData>.FromData(tokenData);
     }
 
+}
+
+public class TokenData
+{
+    public string Token { get; set; }
+    public DateTime Expiration { get; set; }
 }
