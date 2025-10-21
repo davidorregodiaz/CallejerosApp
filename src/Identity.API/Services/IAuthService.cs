@@ -6,7 +6,7 @@ namespace Identity.API.Services;
 
 public interface IAuthService
 {
-    public Task<TaskResult<Token>> Login(LoginViewModel userLoginDto);
-    public Task<TaskResult<Token>> Register(RegisterViewModel registerUserDto);
-    public Task<TaskResult<Token>> RefreshToken(string refreshToken);
+    public Task<Result<Token>> Login(LoginViewModel userLoginDto);
+    public Task<Result<Token>> Register(RegisterViewModel registerUserDto);
+    public Task<Result<Token>> RefreshToken(string refreshToken);
 }

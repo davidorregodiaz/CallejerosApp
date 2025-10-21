@@ -20,7 +20,7 @@ public class AuthService : IAuthService
         _tokenService = tokenService;
     }
 
-    public async Task<TaskResult<Token>> Login(LoginViewModel loginVm)
+    public async Task<Result<Token>> Login(LoginViewModel loginVm)
     {
         var user = await _userManager.FindByEmailAsync(loginVm.Email);
         if (user is not null)
@@ -29,13 +29,13 @@ public class AuthService : IAuthService
             if (passwordExists)
             {
                 var tokenDto = await _tokenService.GenerateTokenDto(user);
-                return TaskResult<Token>.FromData(tokenDto);
+                return Result<Token>.FromData(tokenDto);
             }
         }
-        return TaskResult<Token>.FromFailure("Invalid email or password");
+        return Result<Token>.FromFailure("Invalid email or password");
     }
 
-    public async Task<TaskResult<Token>> Register(RegisterViewModel registerVm)
+    public async Task<Result<Token>> Register(RegisterViewModel registerVm)
     {
         var appUser = new ApplicationUser(registerVm.Email,registerVm.Username);
         var result = await _userManager.CreateAsync(appUser, registerVm.Password);
@@ -43,16 +43,16 @@ public class AuthService : IAuthService
         if (result.Succeeded)
         {
             var tokenDto  = await _tokenService.GenerateTokenDto(appUser);
-            return TaskResult<Token>.FromData(tokenDto);
+            return Result<Token>.FromData(tokenDto);
         }
-        return TaskResult<Token>.FromFailure($"User {registerVm.Email} registration failed with errors: {GetErrors(result.Errors)}");
+        return Result<Token>.FromFailure($"User {registerVm.Email} registration failed with errors: {GetErrors(result.Errors)}");
     }
 
-    public async Task<TaskResult<Token>> RefreshToken(string refreshToken)
+    public async Task<Result<Token>> RefreshToken(string refreshToken)
     {
         var user = await _tokenService.FindUserByRefreshToken(refreshToken);
         if (user is null)
-            return TaskResult<Token>.FromFailure("Invalid token");
+            return Result<Token>.FromFailure("Invalid token");
 
         var result = await _tokenService.ValidateRefreshToken(refreshToken, user);
 
@@ -61,14 +61,14 @@ public class AuthService : IAuthService
             // Rotar el refresh token (nuevo token)
             var newRefreshToken =  await _tokenService.GenerateRefreshToken(user);
 
-            return TaskResult<Token>.FromData(new Token
+            return Result<Token>.FromData(new Token
             {
                 AccessToken = _tokenService.GenerateAccessToken(user),
                 RefreshToken = newRefreshToken,
                 ExpiresIn = Convert.ToInt32(_configuration["Jwt:ExpireMinutes"])
             });
         }
-        return TaskResult<Token>.FromFailure("Token expired or invalid");
+        return Result<Token>.FromFailure("Token expired or invalid");
     }
 
     private static string GetErrors(IEnumerable<IdentityError> errors)

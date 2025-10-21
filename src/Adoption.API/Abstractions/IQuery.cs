@@ -1,6 +1,6 @@
 ﻿namespace Adoption.API.Abstractions;
 
-public interface IQuery
+public interface IQuery<TResponse>
 {
     
 }

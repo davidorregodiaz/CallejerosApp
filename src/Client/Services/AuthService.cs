@@ -1,4 +1,3 @@
-using System;
 using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Text.Json;
@@ -20,11 +19,11 @@ public class AuthService(IJSRuntime js, IHttpClientFactory clientFactory) : Auth
     public async Task<string?> GetToken() => await js.GetFromLocalStorage(TokenKey);
 
 
-    public async Task<TaskResult> SignIn(UserLoginModel model)
+    public async Task<Result> SignIn(UserLoginModel model)
     {
         try
         {
-            var client = clientFactory.CreateClient("Api");
+            var client = clientFactory.CreateClient("identity");
             var response = await client.PostAsJsonAsync("api/auth/login", model);
             response.EnsureSuccessStatusCode();
             var tokenModel = await response.Content.ReadFromJsonAsync<TokenModel>();
@@ -32,11 +31,11 @@ public class AuthService(IJSRuntime js, IHttpClientFactory clientFactory) : Auth
             var principal = JwtClaimsParser.Deserialize(tokenModel.Token);
             NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(principal)));
             _ = ScheduleTokenRefresh();
-            return new TaskResult { Success = true, Message = "[SUCC] Login successful!" };
+            return new Result { Success = true, Message = "[SUCC] Login successful!" };
         }
         catch (Exception ex)
         {
-            return new TaskResult { Success = false, Message = "[ERR] " + ex.Message };
+            return new Result { Success = false, Message = "[ERR] " + ex.Message };
         }
 
     }
@@ -45,25 +44,25 @@ public class AuthService(IJSRuntime js, IHttpClientFactory clientFactory) : Auth
     {
         var tokenString = await GetToken();
         var tokenModel = JsonSerializer.Deserialize<TokenModel>(tokenString);
-        var refreshTime = TimeSpan.FromMinutes(tokenModel.Expiration - _refreshMarginMinutes);
+        var refreshTime = TimeSpan.FromMinutes(tokenModel.ExpirationMinutes - _refreshMarginMinutes);
 
         _refreshTimer = new Timer(async _ => await RefreshTokenAsync(),
             null,
             refreshTime,
             Timeout.InfiniteTimeSpan);
     }
-    public async Task<TaskResult> RefreshTokenAsync()
+    public async Task<Result> RefreshTokenAsync()
     {
         try
         {
-            var client = clientFactory.CreateClient("Api");
+            var client = clientFactory.CreateClient("identity");
             var response = await client.GetAsync("api/auth/refresh-token");
 
             if (response.IsSuccessStatusCode)
             {
                 var tokenModel = await response.Content.ReadFromJsonAsync<TokenModel>();
                 await js.SetToLocalStorage(TokenKey, JsonSerializer.Serialize(tokenModel));
-                return TaskResult.FromSuccess("[SUCC] Token Reactivated");
+                return Result.FromSuccess("[SUCC] Token Reactivated");
             }
             else
             {
@@ -72,61 +71,61 @@ public class AuthService(IJSRuntime js, IHttpClientFactory clientFactory) : Auth
                 {
                     await js.RemoveFromLocalStorage(TokenKey);
                     _refreshTimer?.Dispose();
-                    return TaskResult.FromFailure("[WARN] Token expired");
+                    return Result.FromFailure("[WARN] Token expired");
                 }
-                return TaskResult.FromFailure("[WARN] User must be authenticated");
+                return Result.FromFailure("[WARN] User must be authenticated");
             }
         }
         catch (Exception ex)
         {
-            return TaskResult.FromFailure("[ERR] Exception Caught " + ex.Message);
+            return Result.FromFailure("[ERR] Exception Caught " + ex.Message);
         }
     }
 
     public async Task SignOut()
     {
-        var client = clientFactory.CreateClient("Api");
-        await client.GetAsync("api/auth/logOut");
+        var client = clientFactory.CreateClient("identity");
+        // await client.GetAsync("api/auth/logOut");
         await js.RemoveFromLocalStorage(TokenKey);
         NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(new ClaimsPrincipal(_anonymous))));
         Console.WriteLine("Signed out");
     }
 
-    // public async Task<TaskResult> ChangePassword(UserRegisterModel model)
+    // public async Task<Result> ChangePassword(UserRegisterModel model)
     // {
     //     if (string.IsNullOrEmpty(model.OldPassword) || string.IsNullOrEmpty(model.NewPassword))
     //     {
-    //         return new TaskResult { Success = false, Message = "Old and New Passwords are required." };
+    //         return new Result { Success = false, Message = "Old and New Passwords are required." };
     //     }
 
     //     var client = clientFactory.CreateClient("Api");
     //     var response = await client.PostAsJsonAsync("api/auth/change-password", model);
     //     if (response.IsSuccessStatusCode)
     //     {
-    //         return new TaskResult { Success = true, Message = "Password changed successfully!" };
+    //         return new Result { Success = true, Message = "Password changed successfully!" };
     //     }
     //     else
     //     {
-    //         return new TaskResult { Success = false, Message = "Failed to change password." };
+    //         return new Result { Success = false, Message = "Failed to change password." };
     //     }
     // }   
 
-    public async Task<TaskResult> SignUp(UserRegisterModel model)
+    public async Task<Result> SignUp(UserRegisterModel model)
     {
         if (string.IsNullOrEmpty(model.Email) || string.IsNullOrEmpty(model.Password))
         {
-            return new TaskResult { Success = false, Message = "Email and Password are required." };
+            return new Result { Success = false, Message = "Email and Password are required." };
         }
 
-        var client = clientFactory.CreateClient("Api");
+        var client = clientFactory.CreateClient("identity");
         var response = await client.PostAsJsonAsync("api/auth/register", model);
         if (response.IsSuccessStatusCode)
         {
-            return new TaskResult { Success = true, Message = "Registration successful!" };
+            return new Result { Success = true, Message = "Registration successful!" };
         }
         else
         {
-            return new TaskResult { Success = false, Message = "Failed to register." };
+            return new Result { Success = false, Message = "Failed to register." };
         }
     }
 

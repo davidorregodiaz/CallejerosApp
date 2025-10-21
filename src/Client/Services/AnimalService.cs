@@ -19,45 +19,45 @@ public class AnimalService
     }
 
     
-    public async Task<TaskResult<IEnumerable<ResponseAnimalDto>>> GetAnimalsAsync()
+    public async Task<Result<IEnumerable<ResponseAnimalDto>>> GetAnimalsAsync()
     {
-        var client = _clientFactory.CreateClient("Api");
+        var client = _clientFactory.CreateClient("adoptions");
         try
         {
             var response = await client.GetAsync("api/animals");
             response.EnsureSuccessStatusCode();
             var animals = await response.Content.ReadFromJsonAsync<List<ResponseAnimalDto>>();
-            return TaskResult<IEnumerable<ResponseAnimalDto>>.FromData(animals!);
+            return Result<IEnumerable<ResponseAnimalDto>>.FromData(animals!);
         }
         catch (HttpRequestException e)
         {
             Console.WriteLine("\nException Caught!");
             Console.WriteLine("Message :{0} ", e.Message);
-            return TaskResult<IEnumerable<ResponseAnimalDto>>.FromFailure("Not animals available.");
+            return Result<IEnumerable<ResponseAnimalDto>>.FromFailure("Not animals available.");
         }
     }
 
-    public async Task<TaskResult<ResponseAnimalDto>> GetAnimalByIdAsync(Guid id)
+    public async Task<Result<ResponseAnimalDto>> GetAnimalByIdAsync(Guid id)
     {
-        var client = _clientFactory.CreateClient("Api");
+        var client = _clientFactory.CreateClient("adoptions");
         try
         {
             var response = await client.GetAsync($"api/animals/{id}");
             response.EnsureSuccessStatusCode();
             var animal = await response.Content.ReadFromJsonAsync<ResponseAnimalDto>();
-            return TaskResult<ResponseAnimalDto>.FromData(animal!);
+            return Result<ResponseAnimalDto>.FromData(animal!);
         }
         catch (Exception e)
         {
             Console.WriteLine("\nException Caught!");
             Console.WriteLine("Message :{0} ", e.Message);
-            return TaskResult<ResponseAnimalDto>.FromFailure("Not animal found with such id: "+id);
+            return Result<ResponseAnimalDto>.FromFailure("Not animal found with such id: "+id);
         }
     }
 
-    public async Task<TaskResult> PostAnimalAsync(Animal animal)
+    public async Task<Result> PostAnimalAsync(Animal animal)
     {
-        var client = _clientFactory.CreateClient("Api");
+        var client = _clientFactory.CreateClient("adoptions");
         var animalJson = JsonSerializer.Serialize(animal);
 
         using MultipartFormDataContent content = new();
@@ -75,8 +75,8 @@ public class AnimalService
         var result = await client.PostAsync("api/animals", content);
 
         if (result.IsSuccessStatusCode)
-            return TaskResult.FromSuccess("Se creo correctamente");
+            return Result.FromSuccess("Se creo correctamente");
         else
-            return TaskResult.FromFailure("Algo salio mal");
+            return Result.FromFailure("Algo salio mal");
     }
 }

@@ -1,24 +1,23 @@
 using System.Text.Json;
 using Adoption.API.Application.Commands.Animals;
 using Adoption.API.Application.Queries;
-using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Dtos;
 
 namespace Adoption.API.Controllers;
 
-[Route("api/[controller]")]
+
 [ApiController]
+[Route("api/[controller]")]
 public class AnimalsController : ControllerBase
 {
 
     private readonly IWebHostEnvironment _webHostEnvironment;
-    private readonly IMediator _mediator;
     private readonly IAnimalQueries _animalQueries;
-    public AnimalsController(IWebHostEnvironment webHostEnvironment, IMediator mediator, IAnimalQueries animalQueries)
+    public AnimalsController(IWebHostEnvironment webHostEnvironment, IAnimalQueries animalQueries)
     {
         _webHostEnvironment = webHostEnvironment;
-        _mediator = mediator;
         _animalQueries = animalQueries;
     }
 
@@ -44,8 +43,25 @@ public class AnimalsController : ControllerBase
         return picturesPaths;
     }
 
+    public static string ConvertToWebPath(string physicalPath)
+    {
+        if (string.IsNullOrEmpty(physicalPath))
+            return string.Empty;
+            
+        var basePhysicalPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+        
+        if (physicalPath.StartsWith(basePhysicalPath))
+        {
+            return physicalPath
+                .Substring(basePhysicalPath.Length)
+                .Replace('\\', '/');
+        }
+        
+        return physicalPath;
+    }
+
     [HttpPost]
-    // [Authorize]
+    [Authorize]
     public async Task<IResult> CreateAnimal([FromForm] string animalData,[FromForm] IEnumerable<IFormFile> images)
     {
         var createAnimalDto = JsonSerializer.Deserialize<CreateAnimalDto>(animalData);
@@ -62,16 +78,16 @@ public class AnimalsController : ControllerBase
             createAnimalDto.Breed,
             createAnimalDto.Type,
             createAnimalDto.Description,
-            picturesPaths
+            picturesPaths.Select(ConvertToWebPath).ToList()
         );
 
-        var createAnimalResult = await _mediator.Send(createAnimalCommand);
+        // var createAnimalResult = await _mediator.Send(createAnimalCommand); //TODO Here is where it sends the command through mediator
 
-        if (!createAnimalResult.IsSuccessful(out var animalCreated))
-        {
-            return Results.BadRequest(createAnimalResult.Message);
-        }
-        return Results.CreatedAtRoute("GetAnimalById", new { id = animalCreated.Id }, animalCreated);
+        // if (!createAnimalResult.IsSuccessful(out var animalCreated))
+        // {
+        //     return Results.BadRequest(createAnimalResult.Message);
+        // }
+        return Results.CreatedAtRoute("GetAnimalById", new { id = 2 });
     }
 
     [HttpGet("{id}", Name = "GetAnimalById")]
@@ -87,16 +103,16 @@ public class AnimalsController : ControllerBase
         return Results.Ok(animal);
     }
 
-    // [HttpGet]
-    // public async Task<IResult> GetAnimals()
-    // {
-    //     var result = await _animalService.GetAnimals();
-    //     if (!result.IsSuccessful(out var animals))
-    //     {
-    //         return Results.NotFound(result.Message);
-    //     }
-    //     return Results.Ok(animals);
-    // }
+    [HttpGet]
+    public async Task<IResult> GetAnimals()
+    {
+        var result = await _animalQueries.FindAllAnimals();
+        if (!result.IsSuccessful(out var animals))
+        {
+            return Results.NotFound(result.Message);
+        }
+        return Results.Ok(animals);
+    }
 
     // [HttpGet("filter/by-breed")]
     // public async Task<IResult> FilterAnimalsByBreed([FromQuery] string breed)

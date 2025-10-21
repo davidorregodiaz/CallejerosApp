@@ -1,17 +1,15 @@
 
-using MediatR;
+
 using Shared;
 
 namespace Adoption.API.Abstractions;
 
-internal interface ICommandHandler<TCommand> : IRequestHandler<TCommand, TaskResult>
-    where TCommand : ICommand
+internal interface ICommandHandler<in TCommand> where TCommand : ICommand
 {
-
+    Task HandleAsync(TCommand command, CancellationToken cancellationToken);
 }
 
-interface ICommandHandler <TCommand,TResponse> : IRequestHandler<TCommand, TaskResult<TResponse>>
-    where TCommand : ICommand<TResponse>
+internal interface ICommandHandler <TCommand,TResponse> where TCommand : ICommand<TResponse>
 {
-    
+    Task<Result<TResponse>> HandleAsync(TCommand command, CancellationToken cancellationToken);
 }

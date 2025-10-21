@@ -12,6 +12,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client", "src\Client\Client
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Identity.API", "src\Identity.API\Identity.API.csproj", "{3B099F45-567F-43EE-8564-FDB62D0BF481}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Callejeros.DefaultServices", "src\Callejeros.DefaultServices\Callejeros.DefaultServices.csproj", "{476BED1B-61E9-4EA5-942B-D180315F3158}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -94,8 +96,17 @@ Global
 		{3B099F45-567F-43EE-8564-FDB62D0BF481}.Release|x64.Build.0 = Release|Any CPU
 		{3B099F45-567F-43EE-8564-FDB62D0BF481}.Release|x86.ActiveCfg = Release|Any CPU
 		{3B099F45-567F-43EE-8564-FDB62D0BF481}.Release|x86.Build.0 = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
+		{476BED1B-61E9-4EA5-942B-D180315F3158}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{476BED1B-61E9-4EA5-942B-D180315F3158}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{476BED1B-61E9-4EA5-942B-D180315F3158}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{476BED1B-61E9-4EA5-942B-D180315F3158}.Debug|x64.Build.0 = Debug|Any CPU
+		{476BED1B-61E9-4EA5-942B-D180315F3158}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{476BED1B-61E9-4EA5-942B-D180315F3158}.Debug|x86.Build.0 = Debug|Any CPU
+		{476BED1B-61E9-4EA5-942B-D180315F3158}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{476BED1B-61E9-4EA5-942B-D180315F3158}.Release|Any CPU.Build.0 = Release|Any CPU
+		{476BED1B-61E9-4EA5-942B-D180315F3158}.Release|x64.ActiveCfg = Release|Any CPU
+		{476BED1B-61E9-4EA5-942B-D180315F3158}.Release|x64.Build.0 = Release|Any CPU
+		{476BED1B-61E9-4EA5-942B-D180315F3158}.Release|x86.ActiveCfg = Release|Any CPU
+		{476BED1B-61E9-4EA5-942B-D180315F3158}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

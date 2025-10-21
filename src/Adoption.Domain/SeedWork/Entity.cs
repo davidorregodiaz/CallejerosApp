@@ -1,4 +1,3 @@
-using MediatR;
 
 namespace Adoption.Domain.SeedWork;
 
@@ -11,14 +10,14 @@ public abstract class Entity
 
     public Guid Id { get; private init; }
 
-    private List<INotification>? _domainEvents;
-    public IReadOnlyCollection<INotification>? DomainEvents => _domainEvents?.AsReadOnly();
-    public void AddDomainEvent(INotification eventItem)
+    private List<IDomainEvent>? _domainEvents;
+    public IReadOnlyCollection<IDomainEvent>? DomainEvents => _domainEvents?.AsReadOnly();
+    public void AddDomainEvent(IDomainEvent eventItem)
     {
-        _domainEvents = _domainEvents ?? new List<INotification>();
+        _domainEvents = _domainEvents ?? new List<IDomainEvent>();
         _domainEvents.Add(eventItem);
     }
-    public void RemoveDomainevent(INotification eventItem)
+    public void RemoveDomainevent(IDomainEvent eventItem)
     {
         _domainEvents?.Remove(eventItem);
     }
