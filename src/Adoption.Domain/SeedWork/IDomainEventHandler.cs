@@ -1,6 +1,8 @@
-﻿namespace Adoption.Domain.SeedWork;
+﻿using Shared;
 
-public interface IDomainEventHandler
+namespace Adoption.Domain.SeedWork;
+
+public interface IDomainEventHandler<T> where T : IDomainEvent
 {
-    
+    Task<Result<T>> Handle(T domainEvent, CancellationToken cancellationToken);
 }

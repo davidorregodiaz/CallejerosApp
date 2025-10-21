@@ -1,6 +1,14 @@
-﻿namespace Adoption.API.Application.Queries;
+﻿using Adoption.API.Abstractions;
+using Shared;
 
-public class GetAllAnimalsQuery
+namespace Adoption.API.Application.Queries;
+
+public record GetAllAnimalsQuery(
+    string Name,
+    int Page,
+    int PageSize) : IQuery<List<AnimalResponse>>;
+
+public class AnimalResponse
 {
     
 }

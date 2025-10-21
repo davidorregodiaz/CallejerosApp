@@ -1,10 +1,9 @@
 
 using Adoption.API.Abstractions;
+using Adoption.API.Application.Mappers;
 using Adoption.Domain.AggregatesModel.AnimalAggregate;
-using Application.Mappers;
 using Shared;
 using Shared.Dtos;
-using Adoption.Domain.SeedWork;
 
 namespace Adoption.API.Application.Commands.Animals;
 
@@ -19,7 +18,7 @@ public class CreateAnimalCommandHandler : ICommandHandler<CreateAnimalCommand, R
         _logger = logger;
     }
 
-    public async Task<TaskResult<ResponseAnimalDto>> Handle(CreateAnimalCommand request, CancellationToken cancellationToken)
+    public async Task<Result<ResponseAnimalDto>> HandleAsync(CreateAnimalCommand request, CancellationToken cancellationToken)
     {
         var animal = Animal.Create(
             request.Name,
@@ -36,6 +35,6 @@ public class CreateAnimalCommandHandler : ICommandHandler<CreateAnimalCommand, R
         _logger.LogInformation("Creating Animal - Animal : {@Animal}", animal);
 
         await _animalRepository.UnitOfWork().SaveEntitiesAsync(cancellationToken);
-        return TaskResult<ResponseAnimalDto>.FromData(animalResponse);
+        return Result<ResponseAnimalDto>.FromData(animalResponse);
     }
 }

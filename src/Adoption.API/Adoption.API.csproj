@@ -7,6 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="FluentValidation" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
         <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" />
         <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
@@ -18,9 +19,14 @@
         <PackageReference Include="Microsoft.Extensions.Identity.Core" />
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
         <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
+        <PackageReference Include="Scrutor"/>
+        <PackageReference Include="FluentValidation"/>
+        <PackageReference Include="FluentValidation.DependencyInjectionExtensions"/>
+        <PackageReference Include="Swashbuckle.AspNetCore"/>
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\Callejeros.DefaultServices\Callejeros.DefaultServices.csproj" />
       <ProjectReference Include="..\Adoption.Domain\Adoption.Domain.csproj" />
       <ProjectReference Include="..\Adoption.Infrastructure\Adoption.Infrastructure.csproj" />
     </ItemGroup>
@@ -31,7 +37,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Application\Behaviors\" />
       <Folder Include="Application\DomainEventHandlers\" />
       <Folder Include="Application\Validations\" />
       <Folder Include="wwwroot\" />

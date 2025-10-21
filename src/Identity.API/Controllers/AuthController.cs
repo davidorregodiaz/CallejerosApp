@@ -24,11 +24,12 @@ public class AuthController : ControllerBase
         var result = await _authService.Login(userLoginDto);
         if (result.IsSuccessful(out var token))
         {
-            Response.Cookies.Append("refresh_token", token.RefreshToken);
+            // SetRefreshTokenCookie(token.RefreshToken);
             return Results.Ok(new TokenViewModel
             {
                 Token = token.AccessToken,
-                ExpirationMinutes = token.ExpiresIn
+                ExpirationMinutes = token.ExpiresIn,
+                RefreshToken = token.RefreshToken
             });
         }
         
@@ -42,11 +43,12 @@ public class AuthController : ControllerBase
         var result = await _authService.Register(registerUserDto);
         if (result.IsSuccessful(out var token))
         {
-            Response.Cookies.Append("refresh_token", token.RefreshToken);
+            // Response.Cookies.Append("refresh_token", token.RefreshToken);
             return Results.Ok(new TokenViewModel
             {
                 Token = token.AccessToken,
-                ExpirationMinutes = token.ExpiresIn
+                ExpirationMinutes = token.ExpiresIn,
+                RefreshToken = token.RefreshToken
             });
         }
         return Results.BadRequest(new { error = result.Message });
@@ -56,22 +58,26 @@ public class AuthController : ControllerBase
     [HttpGet("refresh-token")]
     public async Task<IResult> RefreshToken()
     {
-        var refreshToken = Request.Cookies["refresh_token"];
+        // var refreshToken = Request.Cookies["refresh_token"];
+
+        if (!Request.Headers.TryGetValue("refresh_token", out var refreshToken))
+            return Results.BadRequest("Refresh token missing");
 
         if (string.IsNullOrEmpty(refreshToken))
             return Results.BadRequest("Refresh token missing");
 
-        var result = await _authService.RefreshToken(refreshToken);
+        var result = await _authService.RefreshToken(refreshToken); 
 
         if (!result.IsSuccessful(out var tokenDto))
             return Results.BadRequest(result.Message);
 
-        SetRefreshTokenCookie(tokenDto.RefreshToken); 
+        // SetRefreshTokenCookie(tokenDto.RefreshToken); 
         
         return Results.Ok(new TokenViewModel
         {
             Token = tokenDto.AccessToken,
-            ExpirationMinutes = tokenDto.ExpiresIn
+            ExpirationMinutes = tokenDto.ExpiresIn,
+            RefreshToken = tokenDto.RefreshToken
         });
     }
 
@@ -95,7 +101,7 @@ public class AuthController : ControllerBase
         {
             HttpOnly = true,
             Secure = false, // Secure=true en producción, false en desarrollo
-            SameSite = SameSiteMode.Lax,
+            SameSite = SameSiteMode.None,
             Expires = DateTime.UtcNow.AddDays(7),
             Path = "/"
         };

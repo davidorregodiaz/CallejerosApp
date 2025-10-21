@@ -78,7 +78,7 @@
             <NavLink href="@($"/adoptions/{animal.Id}")">
               <div class="group relative">
                 <div style="max-width: 100%;max-height: 200px;overflow: hidden;display: flex">
-                    <img transition:name="img-@animal.Id" src="/@animal.Images.FirstOrDefault().Replace('\\', '/')" alt="Dog picture"
+                    <img transition:name="img-@animal.Id" src="@animal.Images.FirstOrDefault()" alt="Dog picture"
                       class="aspect-square w-full rounded-md bg-gray-200 object-cover group-hover:opacity-75 lg:aspect-auto lg:h-80" />
                 </div>
                 <div class="mt-4 flex justify-between">
@@ -108,7 +108,7 @@
   private IEnumerable<ResponseAnimalDto> _filteredAnimals { get; set; } = Enumerable.Empty<ResponseAnimalDto>();
   private List<string>? _breeds { get; set; } = new List<string> { "---All breeds---" };
   private bool _isLoading = true;
-  private TaskResult<IEnumerable<ResponseAnimalDto>> _result;
+  private Result<IEnumerable<ResponseAnimalDto>> _result;
   private string _selectedType { get; set; } = "---All animals---";
   private string _selectedBreed { get; set; } = "---All breeds---";
 

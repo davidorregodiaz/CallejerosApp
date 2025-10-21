@@ -3,22 +3,34 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Client;
 using Client.Services;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.WebAssembly.Http;
+using System.Net;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-var appUri = builder.HostEnvironment.BaseAddress;
+string appUri = builder.HostEnvironment.BaseAddress;
+string identityUri = "http://localhost:5253";
+
+
+var cookieContainer = new CookieContainer();
+
+builder.Services.AddSingleton(cookieContainer);
 
 builder.Services.AddSingleton<AuthService>();
 builder.Services.AddSingleton<AuthenticationStateProvider>(provider => provider.GetRequiredService<AuthService>());
 
-builder.Services.AddScoped(provider => new JwtTokenMessageHandler(new Uri(appUri), provider.GetRequiredService<AuthService>()));
+builder.Services.AddScoped(provider => new JwtTokenMessageHandler(provider.GetRequiredService<AuthService>()));
 
-builder.Services.AddHttpClient("Api", client => client.BaseAddress = new Uri(appUri))
+builder.Services.AddHttpClient("adoptions", client =>
+    {
+        client.BaseAddress = new Uri(appUri);   
+    })
     .AddHttpMessageHandler<JwtTokenMessageHandler>();
 
-builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("Api"));
+builder.Services.AddHttpClient("identity", client => client.BaseAddress = new Uri(identityUri))
+    .AddHttpMessageHandler<JwtTokenMessageHandler>();
 
 builder.Services.AddAuthorizationCore();
 builder.Services.AddScoped<AnimalService>();
@@ -44,3 +56,5 @@ async Task RefreshJwtToken(WebAssemblyHost application)
         Console.WriteLine(result.Message);
     }
 }
+
+

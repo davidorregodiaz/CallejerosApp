@@ -1,8 +1,8 @@
-using MediatR;
+using Adoption.Domain.SeedWork;
 
 namespace Adoption.Domain.Events.Adoption;
 
-public class AdoptionRejectedDomainEvent : INotification
+public class AdoptionRejectedDomainEvent : IDomainEvent
 {
 
 }

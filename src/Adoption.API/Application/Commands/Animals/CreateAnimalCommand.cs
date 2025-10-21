@@ -3,7 +3,7 @@ using Shared.Dtos;
 
 namespace Adoption.API.Application.Commands.Animals;
 
-public sealed record class CreateAnimalCommand(
+public sealed record CreateAnimalCommand(
     string OwnerId,
     string Name,
     int Age,

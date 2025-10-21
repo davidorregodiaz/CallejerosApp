@@ -1,25 +1,30 @@
-using Adoption.API.Extensions;
+using Adoption.API;
+using Callejeros.DefaultServices;
 using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 var clientWwwRoot = Path.Combine(builder.Environment.ContentRootPath, "..", "Client", "wwwroot");
 
-builder.AddAppServices();
+builder.AddApplication();
+builder.AddDefaultAuthentication();
 
 var app = builder.Build();
 
-
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi("/openapi/docs.json");
+    app.MapOpenApi(); 
+    app.UseSwagger();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Adoption API v1");
+        options.RoutePrefix = "swagger";
+    });
 }
 
-
-app.UseCors("AllowBlazorClient");
-
-app.UseCookiePolicy();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseStaticFiles();
+
 
 // Imagenes del cliente 
 app.UseStaticFiles(new StaticFileOptions
@@ -33,7 +38,7 @@ app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(
         Path.Combine(builder.Environment.WebRootPath, "images/upload")),
-    RequestPath = "/wwwroot/images/upload"
+    RequestPath = "/images/upload"
 });
 
 app.UseBlazorFrameworkFiles();

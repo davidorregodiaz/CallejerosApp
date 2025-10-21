@@ -1,8 +1,7 @@
-using System;
+using Adoption.Domain.AggregatesModel.AnimalAggregate;
 using Adoption.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
 using Shared;
-using Shared.Dtos;
 
 namespace Adoption.API.Application.Queries;
 
@@ -14,10 +13,32 @@ public class AnimalQueries : IAnimalQueries
     {
         _ctx = context;
     }
-    public async Task<TaskResult<Animal>> FindAnimalById(Guid id)
+
+    public async Task<Result<IEnumerable<Animal>>> FindAllAnimals()
     {
+        var animals = await _ctx.Animals
+                        .Select(a => new Animal(
+                            a.Id.Value,
+                            a.OwnerId.Value,
+                            a.Name,
+                            a.Age,
+                            a.Breed.Value,
+                            a.AnimalType.Value,
+                            a.ImagesPath,
+                            a.Description
+                        ))
+                        .ToListAsync();
+        if (animals is not null)
+            return Result<IEnumerable<Animal>>.FromData(animals);
+        
+        return Result<IEnumerable<Animal>>.FromFailure("No animals available");
+    }
+
+    public async Task<Result<Animal>> FindAnimalById(Guid id)
+    {
+        
         var animal = await _ctx.Animals
-                        .Where(a => a.Id.Value == id)
+                        .Where(a => a.Id == new AnimalId(id))
                         .SingleOrDefaultAsync();
 
         if (animal is not null)
@@ -32,9 +53,9 @@ public class AnimalQueries : IAnimalQueries
                 animal.ImagesPath,
                 animal.Description
             );
-            return TaskResult<Animal>.FromData(animalFound);
+            return Result<Animal>.FromData(animalFound);
         }
         
-        return TaskResult<Animal>.FromFailure("Animal not found");
+        return Result<Animal>.FromFailure("Animal not found");
     }
 }

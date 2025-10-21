@@ -2,7 +2,7 @@ using Adoption.Domain.AggregatesModel.AnimalAggregate;
 using Shared;
 using Shared.Dtos;
 
-namespace Application.Mappers;
+namespace Adoption.API.Application.Mappers;
 
 public static class AnimalMapper
 {
@@ -20,7 +20,7 @@ public static class AnimalMapper
         );
     }
 
-    public static TaskResult<Animal> ToModel(this CreateAnimalDto createAnimalDto, Animal? animalDb, List<string>? picturesPaths)
+    public static Result<Animal> ToModel(this CreateAnimalDto createAnimalDto, Animal? animalDb, List<string>? picturesPaths)
     {
         // if (animalDb is null)
         // {
@@ -37,27 +37,27 @@ public static class AnimalMapper
         var validateAnimalResult = ValidateAnimal(createAnimalDto, animalDb);
 
         if (validateAnimalResult.IsSuccessful(out var animalValidated))
-            return TaskResult<Animal>.FromData(animalValidated);
+            return Result<Animal>.FromData(animalValidated);
 
-        return TaskResult<Animal>.FromFailure(validateAnimalResult.Message);
+        return Result<Animal>.FromFailure(validateAnimalResult.Message);
 
     }
 
-    private static TaskResult<Animal> ValidateAnimal(CreateAnimalDto createAnimalDto, Animal animalDb)
+    private static Result<Animal> ValidateAnimal(CreateAnimalDto createAnimalDto, Animal animalDb)
     {
 
         // var breedResult = animalDb.SetBreed(createAnimalDto.Breed.ToLowerInvariant().Trim());
         // var typeResult = animalDb.SetType(createAnimalDto.Type.ToLowerInvariant().Trim());
-        TaskResult requierementResult = new();
+        Result requierementResult = new();
 
         // if (!breedResult.Success)
-        //     return TaskResult<Animal>.FromFailure(breedResult.Message);
+        //     return Result<Animal>.FromFailure(breedResult.Message);
 
         // if (!typeResult.Success)
-        //     return TaskResult<Animal>.FromFailure(typeResult.Message);
+        //     return Result<Animal>.FromFailure(typeResult.Message);
 
 
 
-        return TaskResult<Animal>.FromData(animalDb);
+        return Result<Animal>.FromData(animalDb);
     }
 }

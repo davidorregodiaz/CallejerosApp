@@ -8,8 +8,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Shared;
-using Shared.Dtos;
-
 namespace Identity.API.Services;
 
 public class TokenService
@@ -44,7 +42,7 @@ public class TokenService
         };
 
         var token = new JwtSecurityToken(
-            issuer: _configuration["Jwt:Issuer"],
+            issuer: _configuration["Jwt:Url"],
             audience: _configuration["Jwt:Audience"],
             claims: claims,
             expires: DateTime.Now.AddMinutes(
@@ -114,19 +112,19 @@ public class TokenService
         return null;
     }
 
-    public async Task<TaskResult<TokenData>> ValidateRefreshToken(string refreshToken, ApplicationUser appUser)
+    public async Task<Result<TokenData>> ValidateRefreshToken(string refreshToken, ApplicationUser appUser)
     {
         //Obtenemos el token del usuario
         var currentToken = await _userManager.GetAuthenticationTokenAsync(appUser, RefreshTokenProvider, RefreshTokenName);
         var tokenData = JsonSerializer.Deserialize<TokenData>(currentToken);
 
         if (tokenData is null || tokenData.Token != refreshToken)
-            return TaskResult<TokenData>.FromFailure("Token mismatch");
+            return Result<TokenData>.FromFailure("Token mismatch");
 
         if (tokenData.Expiration < DateTime.UtcNow)
-            return TaskResult<TokenData>.FromFailure("Token expired");
+            return Result<TokenData>.FromFailure("Token expired");
 
-        return TaskResult<TokenData>.FromData(tokenData);
+        return Result<TokenData>.FromData(tokenData);
     }
 
 }
