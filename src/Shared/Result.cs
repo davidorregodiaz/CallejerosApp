@@ -4,9 +4,9 @@ using System.Text.Json.Serialization;
 
 namespace Shared
 {
-    public struct TaskResult : ITaskResult
+    public struct Result : IResult
     {
-        public static readonly TaskResult SuccessResult = new(true, "Success");
+        public static readonly Result SuccessResult = new(true, "Success");
 
         [JsonInclude]
         [JsonPropertyName("Message")]
@@ -24,7 +24,7 @@ namespace Shared
         [JsonPropertyName("Success")]
         public bool Success { get; set; }
 
-        public TaskResult(bool success, string message, string details = null, int? errorCode = null)
+        public Result(bool success, string message, string details = null, int? errorCode = null)
         {
             Success = success;
             Message = message;
@@ -32,13 +32,13 @@ namespace Shared
             Code = errorCode;
         }
 
-        public static TaskResult FromFailure(ITaskResult failure) => new(false, failure.Message, failure.Details, failure.Code);
+        public static Result FromFailure(IResult failure) => new(false, failure.Message, failure.Details, failure.Code);
 
-        public static TaskResult FromFailure(string message, int? errorCode = null) => new(false, message, errorCode: errorCode);
-        public static TaskResult FromFailure(Exception ex, int? errorCode = null) => new(false, ex.Message, ex.StackTrace, errorCode);
-        public static TaskResult FromFailure(string message, int? code, string details) => new(false, message, details, errorCode: code);
+        public static Result FromFailure(string message, int? errorCode = null) => new(false, message, errorCode: errorCode);
+        public static Result FromFailure(Exception ex, int? errorCode = null) => new(false, ex.Message, ex.StackTrace, errorCode);
+        public static Result FromFailure(string message, int? code, string details) => new(false, message, details, errorCode: code);
 
-        public static TaskResult FromSuccess(string message) => new(true, message);
+        public static Result FromSuccess(string message) => new(true, message);
         
         public override string ToString()
         {
@@ -51,7 +51,7 @@ namespace Shared
         }
 
     }
-    public struct TaskResult<T> : ITaskResult
+    public struct Result<T> : IResult
     {
         [JsonInclude]
         [JsonPropertyName("Message")]
@@ -73,13 +73,13 @@ namespace Shared
         [JsonPropertyName("Data")]
         public T Data { get; set; }
 
-        public TaskResult(bool success, string message)
+        public Result(bool success, string message)
         {
             Success = success;
             Message = message;
         }
 
-        public TaskResult(bool success, string message, T data, string details = null, int? code = null)
+        public Result(bool success, string message, T data, string details = null, int? code = null)
         {
             Success = success;
             Message = message;
@@ -88,14 +88,14 @@ namespace Shared
             Code = code;
         }
 
-        public static TaskResult<T> FromData(T data) => new(true, "Success", data);
+        public static Result<T> FromData(T data) => new(true, "Success", data);
 
-        public static TaskResult<T> FromFailure(ITaskResult failure) => new(false, failure.Message, default(T), failure.Details, failure.Code);
+        public static Result<T> FromFailure(IResult failure) => new(false, failure.Message, default(T), failure.Details, failure.Code);
 
-        public static TaskResult<T> FromFailure(string message) => new(false, message, default(T), null, code: null);
-        public static TaskResult<T> FromFailure(string message, int? code, string details) => new(false, message, default(T), details, code: code);
-        public static TaskResult<T> FromFailure(string message, int? code) => new(false, message, default(T), null, code: code);
-        public static TaskResult<T> FromFailure(Exception ex, int? code = null) => new(false, ex.Message, default(T), ex.StackTrace, code: code);
+        public static Result<T> FromFailure(string message) => new(false, message, default(T), null, code: null);
+        public static Result<T> FromFailure(string message, int? code, string details) => new(false, message, default(T), details, code: code);
+        public static Result<T> FromFailure(string message, int? code) => new(false, message, default(T), null, code: code);
+        public static Result<T> FromFailure(Exception ex, int? code = null) => new(false, ex.Message, default(T), ex.StackTrace, code: code);
 
         public bool IsSuccessful(out T value)
         {
@@ -103,7 +103,7 @@ namespace Shared
             return Success;
         }
         
-        public TaskResult WithoutData() => new(Success, Message, Details, Code);
+        public Result WithoutData() => new(Success, Message, Details, Code);
 
         public override string ToString()
         {
@@ -116,7 +116,7 @@ namespace Shared
         }
     }
 
-    public interface ITaskResult
+    public interface IResult
     {
         string Message { get; set; }
         
