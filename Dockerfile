@@ -5,6 +5,7 @@ FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:9.0-alpine AS build
 COPY . /source
 
 WORKDIR /source/src/Adoption.API
+EXPOSE 8080
 
 ARG TARGETARCH
 
