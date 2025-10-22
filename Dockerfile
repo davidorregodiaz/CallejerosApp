@@ -7,6 +7,8 @@ COPY . /source
 WORKDIR /source/src/Adoption.API
 EXPOSE 8080
 
+ENV ASPNETCORE_ENVIRONMENT=Development
+
 ARG TARGETARCH
 
 RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages \
