@@ -8,8 +8,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared", "src\Shared\Shared
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Adoption.Domain", "src\Adoption.Domain\Adoption.Domain.csproj", "{2E2622B8-4A8F-4A17-8AD9-C2AC93D138DA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client", "src\Client\Client.csproj", "{7AB20123-BFA1-41D0-AFD0-FA59846CE7F8}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Identity.API", "src\Identity.API\Identity.API.csproj", "{3B099F45-567F-43EE-8564-FDB62D0BF481}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Callejeros.DefaultServices", "src\Callejeros.DefaultServices\Callejeros.DefaultServices.csproj", "{476BED1B-61E9-4EA5-942B-D180315F3158}"
