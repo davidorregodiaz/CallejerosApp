@@ -26,5 +26,6 @@
     <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="9.0.1" />
     <PackageVersion Include="Scrutor" Version="6.1.0" />
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="9.0.1" />
+    <PackageVersion Include="Microsoft.AspNetCore.Components.Web" Version="9.0.1" />
   </ItemGroup>
 </Project>
