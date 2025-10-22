@@ -10,8 +10,6 @@ builder.AddDefaultAuthentication();
 
 var app = builder.Build();
 
-app.Urls.Add("http://+:8080");
-
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
