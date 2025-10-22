@@ -8,8 +8,6 @@ WORKDIR /source/src/Adoption.API
 
 ARG TARGETARCH
 
-RUN dotnet workload install wasm-tools
-
 RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages \
     dotnet publish -a ${TARGETARCH/amd64/x64} --use-current-runtime --self-contained false -o /app
 
