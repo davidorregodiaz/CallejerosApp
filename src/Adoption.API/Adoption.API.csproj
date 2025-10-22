@@ -30,10 +30,10 @@
       <ProjectReference Include="..\Adoption.Infrastructure\Adoption.Infrastructure.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
+    <!-- <ItemGroup> -->
         <!-- Referencia al proyecto Blazor Client -->
-        <ProjectReference Include="..\Client\Client.csproj" />
-    </ItemGroup>
+        <!-- <ProjectReference Include="..\Client\Client.csproj" /> -->
+    <!-- </ItemGroup> -->
 
     <ItemGroup>
       <Folder Include="Application\DomainEventHandlers\" />
@@ -41,15 +41,15 @@
       <Folder Include="wwwroot\" />
     </ItemGroup>
 
-    <Target Name="PublishBlazorClient" AfterTargets="Build">
+    <!-- <Target Name="PublishBlazorClient" AfterTargets="Build"> -->
         <!-- Compila el proyecto Blazor -->
-        <MSBuild Projects="..\Client\Client.csproj" Targets="Publish" Properties="Configuration=$(Configuration)" />
+        <!-- <MSBuild Projects="..\Client\Client.csproj" Targets="Publish" Properties="Configuration=$(Configuration)" /> -->
 
         <!-- Copia los archivos publicados a wwwroot -->
-        <ItemGroup>
+        <!-- <ItemGroup>
             <DistFiles Include="..\Client\bin\$(Configuration)\net8.0\publish\wwwroot\**" />
             <ResolvedFileToPublish Include="@(DistFiles->'%(FullPath)')" RelativePath="%(DistFiles.Identity)" CopyToPublishDirectory="PreserveNewest" />
         </ItemGroup>
-    </Target>
+    </Target> -->
     
 </Project>

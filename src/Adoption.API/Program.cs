@@ -3,7 +3,7 @@ using Callejeros.DefaultServices;
 using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
-var clientWwwRoot = Path.Combine(builder.Environment.ContentRootPath, "..", "Client", "wwwroot");
+// var clientWwwRoot = Path.Combine(builder.Environment.ContentRootPath, "..", "Client", "wwwroot");
 
 builder.AddApplication();
 builder.AddDefaultAuthentication();
@@ -27,11 +27,11 @@ app.UseStaticFiles();
 
 
 // Imagenes del cliente 
-app.UseStaticFiles(new StaticFileOptions
-{
-    FileProvider = new PhysicalFileProvider(clientWwwRoot),
-    RequestPath = ""
-});
+// app.UseStaticFiles(new StaticFileOptions
+// {
+//     FileProvider = new PhysicalFileProvider(clientWwwRoot),
+//     RequestPath = ""
+// });
 
 // Imagenes del servidor subidas por los usuarios
 app.UseStaticFiles(new StaticFileOptions

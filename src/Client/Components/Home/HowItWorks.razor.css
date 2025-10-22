@@ -1,8 +1,0 @@
-.how-it-works-item:hover {
-    transform: translateY(-20px);
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-}
-
-.how-it-works-item{
-    background: red;
-}
