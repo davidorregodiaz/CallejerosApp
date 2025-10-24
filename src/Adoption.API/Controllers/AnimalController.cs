@@ -43,21 +43,26 @@ public class AnimalsController : ControllerBase
         return picturesPaths;
     }
 
-    public static string ConvertToWebPath(string physicalPath)
+    public static string Conv(string physicalPath)
     {
         if (string.IsNullOrEmpty(physicalPath))
             return string.Empty;
-            
+
         var basePhysicalPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-        
+
         if (physicalPath.StartsWith(basePhysicalPath))
         {
             return physicalPath
                 .Substring(basePhysicalPath.Length)
                 .Replace('\\', '/');
         }
-        
+
         return physicalPath;
+    }
+    
+    private string GetName(Guid UserId)
+    {
+        return UserId.ToString();
     }
 
     [HttpPost]
@@ -78,7 +83,7 @@ public class AnimalsController : ControllerBase
             createAnimalDto.Breed,
             createAnimalDto.Type,
             createAnimalDto.Description,
-            picturesPaths.Select(ConvertToWebPath).ToList()
+            picturesPaths.Select(Conv).ToList()
         );
 
         // var createAnimalResult = await _mediator.Send(createAnimalCommand); //TODO Here is where it sends the command through mediator
