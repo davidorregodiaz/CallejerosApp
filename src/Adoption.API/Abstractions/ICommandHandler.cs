@@ -9,7 +9,9 @@ internal interface ICommandHandler<in TCommand> where TCommand : ICommand
     Task HandleAsync(TCommand command, CancellationToken cancellationToken);
 }
 
-internal interface ICommandHandler <TCommand,TResponse> where TCommand : ICommand<TResponse>
+public interface ICommandHandler <TCommand,TResponse> where TCommand : ICommand<TResponse>
 {
-    Task<Result<TResponse>> HandleAsync(TCommand command, CancellationToken cancellationToken);
+    Task<TResponse> HandleAsync(TCommand command, CancellationToken cancellationToken);
 }
+
+

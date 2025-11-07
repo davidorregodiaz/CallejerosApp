@@ -1,13 +1,17 @@
 using Adoption.API.Abstractions;
-using Shared.Dtos;
+using Adoption.API.Application.Models;
 
 namespace Adoption.API.Application.Commands.Animals;
 
-public sealed record CreateAnimalCommand(
-    string OwnerId,
-    string Name,
-    int Age,
-    string Breed,
-    string Type,
-    string Description,
-    List<string> ImagePaths) : ICommand<ResponseAnimalDto>;
+public record  CreateAnimalCommand : ICommand<AnimalResponse>
+{
+    public Guid OwnerId { get; init; }
+    public string Name { get; init; } = null!;
+    public int Age { get; init; }
+    public string Breed { get; init; } = null!;
+    public string Species { get; init; } = null!;
+    public string Description { get; init; } = null!;
+    public IFormFile PrincipalImage { get; init; } = null!;
+    public List<IFormFile>? AdditionalImages { get; init; }
+}
+

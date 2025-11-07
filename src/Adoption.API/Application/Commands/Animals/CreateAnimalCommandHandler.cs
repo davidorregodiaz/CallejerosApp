@@ -1,40 +1,46 @@
 
 using Adoption.API.Abstractions;
 using Adoption.API.Application.Mappers;
+using Adoption.API.Application.Models;
+using Adoption.API.Application.Services;
 using Adoption.Domain.AggregatesModel.AnimalAggregate;
 using Shared;
-using Shared.Dtos;
 
 namespace Adoption.API.Application.Commands.Animals;
 
-public class CreateAnimalCommandHandler : ICommandHandler<CreateAnimalCommand, ResponseAnimalDto>
+public class CreateAnimalCommandHandler(IAnimalRepository animalRepository, ILogger<CreateAnimalCommandHandler> logger, IMinioService minioService)
+    : ICommandHandler<CreateAnimalCommand, AnimalResponse>
 {
-    private readonly IAnimalRepository _animalRepository;
-    private readonly ILogger<CreateAnimalCommandHandler> _logger;
-
-    public CreateAnimalCommandHandler(IAnimalRepository animalRepository, ILogger<CreateAnimalCommandHandler> logger)
+    public async Task<AnimalResponse> HandleAsync(CreateAnimalCommand command, CancellationToken cancellationToken)
     {
-        _animalRepository = animalRepository;
-        _logger = logger;
-    }
+        var principalImagePresignedUrl = await minioService.UploadBlob(command.PrincipalImage,null, cancellationToken);
 
-    public async Task<Result<ResponseAnimalDto>> HandleAsync(CreateAnimalCommand request, CancellationToken cancellationToken)
-    {
+        var aditionalImagesPresignedUrls = new List<string>();
+
+        if (command.AdditionalImages != null)
+        {
+            foreach (var additionalImage in command.AdditionalImages)
+            {
+                aditionalImagesPresignedUrls.Add(await minioService.UploadBlob(additionalImage, null, cancellationToken));
+            }
+        }
+
         var animal = Animal.Create(
-            request.Name,
-            request.Age,
-            request.Description,
-            request.OwnerId,
-            request.Breed,
-            request.Type,
-            request.ImagePaths
+            name: command.Name,
+            age: command.Age,
+            description: command.Description,
+            ownerId: command.OwnerId,
+            breed: command.Breed,
+            species: command.Species,
+            aditionalImages:aditionalImagesPresignedUrls,
+            principalImage: principalImagePresignedUrl
         );
 
-        var animalResponse = _animalRepository.Add(animal).ToResponse();
+        var animalResponse = animalRepository.Add(animal).MapToResponse();
 
-        _logger.LogInformation("Creating Animal - Animal : {@Animal}", animal);
+        logger.LogInformation("Creating Animal - Animal : {@Animal}", animal);
 
-        await _animalRepository.UnitOfWork().SaveEntitiesAsync(cancellationToken);
-        return Result<ResponseAnimalDto>.FromData(animalResponse);
+        await animalRepository.UnitOfWork().SaveChangesAsync(cancellationToken);
+        return animalResponse;
     }
 }

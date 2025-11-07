@@ -19,9 +19,10 @@
     <PackageVersion Include="Microsoft.Extensions.Http" Version="9.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Identity.Core" Version="9.0.1" />
     <PackageVersion Include="Microsoft.IdentityModel.Tokens" Version="8.12.1" />
+    <PackageVersion Include="Minio" Version="6.0.5" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.1" />
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.12.1" />
-    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="9.0.1"/> 
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="9.0.1" />
     <PackageVersion Include="FluentValidation" Version="9.0.1" />
     <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="9.0.1" />
     <PackageVersion Include="Scrutor" Version="6.1.0" />

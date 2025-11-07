@@ -31,20 +31,13 @@ internal static class LoggingDecorator
         ICommandHandler<TCommand, TResponse> innerHandler,
         ILogger<ICommandHandler<TCommand, TResponse>> logger) : ICommandHandler<TCommand, TResponse> where TCommand : ICommand<TResponse>
     {
-        public async Task<Result<TResponse>> HandleAsync(TCommand command, CancellationToken cancellationToken)
+        public async Task<TResponse> HandleAsync(TCommand command, CancellationToken cancellationToken)
         {
             logger.LogInformation("Handling command {CommandName} ({@Command})", command.GetGenericTypeName(), command);
-            var result = await innerHandler.HandleAsync(command, cancellationToken);
-
-            if (result.IsSuccessful(out var response))
-            {
-                logger.LogInformation("Command {CommandName} handled - with response: {@Response}", command.GetGenericTypeName(), response);
-                return Result<TResponse>.FromData(response);
-            }
-            
-            logger.LogWarning(result.Message);
-
-            return Result<TResponse>.FromFailure(result.Message, result.Code, result.Details);
+            var response = await innerHandler.HandleAsync(command, cancellationToken);
+            logger.LogInformation("Command {CommandName} handled - with response: {@Response}", command.GetGenericTypeName(), response);
+                
+            return response;
         }
     }
 }

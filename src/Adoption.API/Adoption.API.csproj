@@ -16,12 +16,13 @@
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Microsoft.Extensions.Identity.Core" />
+        <PackageReference Include="Minio" />
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
         <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
-        <PackageReference Include="Scrutor"/>
-        <PackageReference Include="FluentValidation"/>
-        <PackageReference Include="FluentValidation.DependencyInjectionExtensions"/>
-        <PackageReference Include="Swashbuckle.AspNetCore"/>
+        <PackageReference Include="Scrutor" />
+        <PackageReference Include="FluentValidation" />
+        <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
+        <PackageReference Include="Swashbuckle.AspNetCore" />
     </ItemGroup>
 
     <ItemGroup>
@@ -37,7 +38,6 @@
 
     <ItemGroup>
       <Folder Include="Application\DomainEventHandlers\" />
-      <Folder Include="Application\Validations\" />
       <Folder Include="wwwroot\" />
     </ItemGroup>
 

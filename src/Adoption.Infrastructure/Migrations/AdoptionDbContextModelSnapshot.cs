@@ -60,9 +60,18 @@ namespace Adoption.Infrastructure.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("AdditionalImagesUrl")
+                        .HasColumnType("text");
+
                     b.Property<int>("Age")
                         .HasColumnType("integer")
                         .HasColumnName("Age");
+
+                    b.Property<string>("Breed")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("Breed");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -70,68 +79,41 @@ namespace Adoption.Infrastructure.Migrations
                         .HasColumnType("character varying(500)")
                         .HasColumnName("Description");
 
-                    b.Property<string>("ImagesPath")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("Name");
 
+                    b.Property<string>("NormalizedBreed")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("NormalizedName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("NormalizedSpecies")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<Guid>("OwnerId")
                         .HasColumnType("uuid")
                         .HasColumnName("OwnerId");
 
+                    b.Property<string>("PrincipalImage")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Species")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("Species");
+
                     b.HasKey("Id");
 
                     b.ToTable("Animals", "adoption");
-                });
-
-            modelBuilder.Entity("Adoption.Domain.AggregatesModel.AnimalAggregate.Animal", b =>
-                {
-                    b.OwnsOne("Adoption.Domain.AggregatesModel.AnimalAggregate.AnimalType", "AnimalType", b1 =>
-                        {
-                            b1.Property<Guid>("AnimalId")
-                                .HasColumnType("uuid");
-
-                            b1.Property<string>("Value")
-                                .IsRequired()
-                                .HasMaxLength(20)
-                                .HasColumnType("character varying(20)");
-
-                            b1.HasKey("AnimalId");
-
-                            b1.ToTable("Animals", "adoption");
-
-                            b1.WithOwner()
-                                .HasForeignKey("AnimalId");
-                        });
-
-                    b.OwnsOne("Adoption.Domain.AggregatesModel.AnimalAggregate.Breed", "Breed", b1 =>
-                        {
-                            b1.Property<Guid>("AnimalId")
-                                .HasColumnType("uuid");
-
-                            b1.Property<string>("Value")
-                                .IsRequired()
-                                .HasMaxLength(20)
-                                .HasColumnType("character varying(20)");
-
-                            b1.HasKey("AnimalId");
-
-                            b1.ToTable("Animals", "adoption");
-
-                            b1.WithOwner()
-                                .HasForeignKey("AnimalId");
-                        });
-
-                    b.Navigation("AnimalType")
-                        .IsRequired();
-
-                    b.Navigation("Breed")
-                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }

@@ -19,20 +19,4 @@ public class AnimalRepository : IAnimalRepository
                 .Add(animal)
                 .Entity;
     }
-    public async Task<Animal?> GetByIdAsync(Guid id)
-    {
-        var animal = await _ctx.Animals
-                        .Where(a => a.Id.Value == id)
-                        .SingleOrDefaultAsync();
-        return animal;
-    }
-
-    public Animal Update(Animal animal)
-    {
-        return _ctx.Animals
-                .Update(animal)
-                .Entity;
-    }
-
-
 }
