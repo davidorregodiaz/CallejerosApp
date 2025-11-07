@@ -12,7 +12,6 @@ namespace Adoption.API.Controllers;
 [Route("api/[controller]")]
 public class AnimalsController : ControllerBase
 {
-
     private readonly IWebHostEnvironment _webHostEnvironment;
     private readonly IAnimalQueries _animalQueries;
     public AnimalsController(IWebHostEnvironment webHostEnvironment, IAnimalQueries animalQueries)
@@ -59,7 +58,7 @@ public class AnimalsController : ControllerBase
 
         return physicalPath;
     }
-    
+
     private string GetName(Guid UserId)
     {
         return UserId.ToString();
@@ -67,7 +66,7 @@ public class AnimalsController : ControllerBase
 
     [HttpPost]
     [Authorize]
-    public async Task<IResult> CreateAnimal([FromForm] string animalData,[FromForm] IEnumerable<IFormFile> images)
+    public async Task<IResult> CreateAnimal([FromForm] string animalData, [FromForm] IEnumerable<IFormFile> images)
     {
         var createAnimalDto = JsonSerializer.Deserialize<CreateAnimalDto>(animalData);
 
@@ -85,13 +84,7 @@ public class AnimalsController : ControllerBase
             createAnimalDto.Description,
             picturesPaths.Select(Conv).ToList()
         );
-
-        // var createAnimalResult = await _mediator.Send(createAnimalCommand); //TODO Here is where it sends the command through mediator
-
-        // if (!createAnimalResult.IsSuccessful(out var animalCreated))
-        // {
-        //     return Results.BadRequest(createAnimalResult.Message);
-        // }
+        
         return Results.CreatedAtRoute("GetAnimalById", new { id = 2 });
     }
 
