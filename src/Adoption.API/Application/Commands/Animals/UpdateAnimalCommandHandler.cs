@@ -1,4 +1,5 @@
 ﻿using Adoption.API.Abstractions;
+using Adoption.API.Application.Exceptions;
 using Adoption.API.Application.Mappers;
 using Adoption.API.Application.Models;
 using Adoption.API.Application.Services;
@@ -17,9 +18,9 @@ public class UpdateAnimalCommandHandler(AdoptionDbContext ctx, IMinioService min
             await ctx.Animals.SingleOrDefaultAsync(x => x.Id == new AnimalId(command.AnimalId), cancellationToken);
 
         if (animal is null)
-            throw new ApplicationException($"No animal with id - {command.AnimalId} found");
+            throw new AnimalNotFoundException($"No animal with id - {command.AnimalId} found");
 
-        var principalImagePresignedUrl = await minioService.UploadFileAsync(command.PrincipalImage);
+        var principalImagePresignedUrl = await minioService.UploadBlob(command.PrincipalImage, null, cancellationToken);
 
         var aditionalImagesPresignedUrls = new List<string>();
 
@@ -27,7 +28,7 @@ public class UpdateAnimalCommandHandler(AdoptionDbContext ctx, IMinioService min
         {
             foreach (var additionalImage in command.AdditionalImages)
             {
-                aditionalImagesPresignedUrls.Add(await minioService.UploadFileAsync(additionalImage));
+                aditionalImagesPresignedUrls.Add(await minioService.UploadBlob(additionalImage, null, cancellationToken));
             }
         }
         

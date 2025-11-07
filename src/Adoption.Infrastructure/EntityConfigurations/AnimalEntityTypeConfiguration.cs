@@ -30,24 +30,22 @@ public class AnimalEntityTypeConfiguration
             .HasColumnName("Age")
             .IsRequired();
 
-        animalConfiguration.OwnsOne(a => a.Breed, breedBuilder =>
-        {
-            breedBuilder.Property(b => b.Value)
-                .HasMaxLength(20);
-        });
+        animalConfiguration.Property(a => a.Breed)
+           .HasColumnName("Breed")
+           .IsRequired()
+           .HasMaxLength(50);
 
-        animalConfiguration.OwnsOne(a => a.AnimalType, typeBuilder =>
-        {
-            typeBuilder.Property(t => t.Value)
-                .HasMaxLength(20);
-        }).Navigation(a => a.AnimalType)
-            .HasField("_type");
+        animalConfiguration.Property(a => a.Species)
+           .HasColumnName("Species")
+           .IsRequired()
+           .HasMaxLength(50);
 
-        animalConfiguration.Property(a => a.ImagesPath)
+        animalConfiguration.Property(a => a.AdditionalImagesUrl)
             .HasConversion(
-                imagePath => string.Join(";", imagePath),   // de List<string> a string para DB
-                imageString => imageString.Split(';', StringSplitOptions.None).ToList() // de string a List<string>
-            );
+                imagePath => (imagePath == null || imagePath.Count == 0) ? null : string.Join(";", imagePath), 
+                imageString => string.IsNullOrEmpty(imageString) ? new List<string>() : imageString.Split(';', StringSplitOptions.None).ToList() 
+            )
+            .HasField("_aditionalImages"); ;
 
         animalConfiguration.Property(a => a.Description)
             .HasColumnName("Description")

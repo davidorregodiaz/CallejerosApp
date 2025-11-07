@@ -1,3 +1,15 @@
-﻿namespace Adoption.API.Application.Queries;
+﻿using Adoption.API.Abstractions;
+using Adoption.API.Application.Models;
 
-public record GetAllAnimalsQuery();
+namespace Adoption.API.Application.Queries.Animals;
+
+public record GetAllAnimalsQuery(
+    string? Name,
+    string? Species,
+    string? Breed,
+    int? Age,
+    Guid? OwnerId,
+    string SortBy = "AnimalId",
+    int Page = 1,
+    int PageSize = 10,
+    bool IsDescending = false) : IQuery<PaginatedResponse<AnimalResponse>>;

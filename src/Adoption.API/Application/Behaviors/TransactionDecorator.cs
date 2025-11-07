@@ -10,12 +10,12 @@ internal static class TransactionDecorator
 {
     internal sealed class CommandHandler<TCommand, TResponse>(
         ICommandHandler<TCommand, TResponse> innerHandler,
-        ILogger<ICommandHandler<TCommand,TResponse>> logger,
+        ILogger<ICommandHandler<TCommand, TResponse>> logger,
         AdoptionDbContext ctx) : ICommandHandler<TCommand, TResponse> where TCommand : ICommand<TResponse>
     {
-        public async Task<Result<TResponse>> HandleAsync(TCommand command, CancellationToken cancellationToken)
+        public async Task<TResponse> HandleAsync(TCommand command, CancellationToken cancellationToken)
         {
-            var result = default(Result<TResponse>);
+            var response = default(TResponse);
             var typeName = command.GetGenericTypeName();
 
             try
@@ -31,13 +31,18 @@ internal static class TransactionDecorator
                 {
 
                     await using var transaction = await ctx.StartTransactionAsync();
-                    using (logger.BeginScope(new List<KeyValuePair<string, object>> { new("TransactionContext", transaction.TransactionId) }))
+                    using (logger.BeginScope(new List<KeyValuePair<string, object>>
+                           {
+                               new("TransactionContext", transaction.TransactionId)
+                           }))
                     {
-                        logger.LogInformation("Begin transaction {TransactionId} for {CommandName} ({@Command})", transaction.TransactionId, typeName, command);
+                        logger.LogInformation("Begin transaction {TransactionId} for {CommandName} ({@Command})",
+                            transaction.TransactionId, typeName, command);
 
-                        result = await innerHandler.HandleAsync(command, cancellationToken);
+                        response = await innerHandler.HandleAsync(command, cancellationToken);
 
-                        logger.LogInformation("Commit transaction {TransactionId} for {CommandName}", transaction.TransactionId, typeName);
+                        logger.LogInformation("Commit transaction {TransactionId} for {CommandName}",
+                            transaction.TransactionId, typeName);
 
                         await ctx.CommitTransactionAsync(transaction);
                     }
@@ -45,7 +50,7 @@ internal static class TransactionDecorator
                     // await _orderingIntegrationEventService.PublishEventsThroughEventBusAsync(transactionId);
                 });
 
-                return result;
+                return response!;
             }
             catch (Exception ex)
             {
@@ -55,4 +60,52 @@ internal static class TransactionDecorator
             }
         }
     }
+
+    internal sealed class QueryHandler<TQuery, TResponse>(
+            IQueryHandler<TQuery, TResponse> innerHandler,
+            ILogger<IQueryHandler<TQuery,TResponse>> logger,
+            AdoptionDbContext ctx) : IQueryHandler<TQuery, TResponse> where TQuery : IQuery<TResponse>
+        {
+            public async Task<Result<TResponse>> HandleAsync(TQuery query, CancellationToken cancellationToken)
+            {
+                var result = default(Result<TResponse>);
+                var typeName = query.GetGenericTypeName();
+
+                try
+                {
+                    if (ctx.HasActiveTransaction)
+                    {
+                        return await innerHandler.HandleAsync(query, cancellationToken);
+                    }
+
+                    var strategy = ctx.Database.CreateExecutionStrategy();
+
+                    await strategy.ExecuteAsync(async () =>
+                    {
+                        await using var transaction = await ctx.StartTransactionAsync();
+                        using (logger.BeginScope(new List<KeyValuePair<string, object>> { new("TransactionContext", transaction.TransactionId) }))
+                        {
+                            logger.LogInformation("Begin transaction {TransactionId} for {QueryName} ({@Query})", transaction.TransactionId, typeName, query);
+
+                            result = await innerHandler.HandleAsync(query, cancellationToken);
+
+                            if (result.IsSuccessful(out _))
+                            {
+                                logger.LogInformation("Commit transaction {TransactionId} for {CommandName}", transaction.TransactionId, typeName);
+
+                                await ctx.CommitTransactionAsync(transaction);
+                            }
+                        }
+                        // await _orderingIntegrationEventService.PublishEventsThroughEventBusAsync(transactionId);
+                    });
+
+                    return result;
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Error Handling transaction for {QueryName} ({@Query})", typeName, query);
+                    throw;
+                }
+            }
+        }
 }

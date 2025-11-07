@@ -16,7 +16,7 @@ public class AdoptionDbContextFactory : IDesignTimeDbContextFactory<AdoptionDbCo
     public AdoptionDbContext CreateDbContext(string[] args)
     {
         var optionsBuilder = new DbContextOptionsBuilder<AdoptionDbContext>();
-        var basePath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "../Api"));
+        var basePath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "../Adoption.API"));
 
         Console.WriteLine($"Base Path: {basePath}");
 

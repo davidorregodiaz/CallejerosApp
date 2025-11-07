@@ -1,6 +1,6 @@
+using Adoption.API.Abstractions;
+
 namespace Adoption.API.Application.Commands.Animals;
 
-public class DeleteAnimalCommand
-{
-    
-}
+public record DeleteAnimalCommand(
+    Guid Id) : ICommand;
