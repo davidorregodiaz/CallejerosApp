@@ -14,12 +14,13 @@ public static class AnimalApi
     {
         var animalApi = app
             .MapGroup("/animals")
-            .WithTags("Animal")
-            .WithOpenApi();
+            .WithTags("Animals")
+            .RequireAuthorization("AnimalsManagementPolicy");
 
         animalApi.MapPost("/", CreateAnimalAsync)
             .Accepts<CreateAnimalCommand>("multipart/form-data")
             .DisableAntiforgery()
+            .AllowAnonymous()
             .WithSummary("Creates an animal")
             .Produces<CreatedAtRoute<AnimalResponse>>(StatusCodes.Status201Created)
             .ProducesValidationProblem()
@@ -29,14 +30,16 @@ public static class AnimalApi
             .WithName("GetAnimalById")
             .WithSummary("Gets an animal by an id.")
             .Produces<Ok<AnimalResponse>>(statusCode: StatusCodes.Status200OK)
-            .Produces<NotFound<string>>();
-        
+            .Produces<NotFound<string>>()
+            .AllowAnonymous();
+
         animalApi.MapGet("/", GetAllAnimalsAsync)
             .WithName("GetAllAnimals")
             .WithSummary("Lists all the animals.")
             .Produces<PaginatedResponse<AnimalResponse>>()
-            .Produces(StatusCodes.Status204NoContent);
-        
+            .Produces(StatusCodes.Status204NoContent)
+            .AllowAnonymous();
+
         animalApi.MapPut("/{Id:guid}", UpdateAnimalAsync)
             .Accepts<UpdateAnimalCommand>("multipart/form-data")
             .DisableAntiforgery()
@@ -46,12 +49,11 @@ public static class AnimalApi
             .ProducesValidationProblem()
             .ProducesProblem(StatusCodes.Status500InternalServerError);
         
-        animalApi.MapDelete("/", DeleteAnimalAsync)
+        animalApi.MapDelete("/{Id:guid}", DeleteAnimalAsync)
             .WithName("DeleteAnimal")
             .WithSummary("Deletes an animal.")
             .Produces<NoContent>(StatusCodes.Status204NoContent)
-            .Produces<ProblemHttpResult>(StatusCodes.Status404NotFound)
-            .Produces<ProblemHttpResult>(StatusCodes.Status500InternalServerError);
+            .ProducesProblem(StatusCodes.Status500InternalServerError);
         
         return app;
     }
@@ -89,7 +91,6 @@ public static class AnimalApi
 
         if (result.IsSuccessful(out var animals))
             return  TypedResults.Ok(animals);
-        
         
         return TypedResults.Ok(response);
     }

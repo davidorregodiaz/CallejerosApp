@@ -1,0 +1,150 @@
+using System.Text;
+using Adoption.API.Application.Models.User;
+using Adoption.API.Application.Queues;
+using Adoption.API.Application.Services.Email;
+using Adoption.API.Application.Services.Minio;
+using Adoption.Domain.AggregatesModel.UserAggregate;
+using Adoption.Infrastructure.Services;
+using Identity.API.Models;
+using Identity.API.Models.ViewModels;
+using Microsoft.AspNetCore.Identity;
+using Shared;
+
+namespace Adoption.API.Application.Services.Auth;
+
+public class AuthService(
+    UserManager<ApplicationUser> userManager,
+    IMinioService minioService,
+    IConfiguration configuration,
+    TokenService tokenService,
+    IEmailQueue emailQueue,
+    ILogger<AuthService> logger)
+    : IAuthService
+{
+    public async Task<Result<Token>> Login(LoginViewModel loginVm)
+    {
+        var user = await userManager.FindByEmailAsync(loginVm.Email);
+        if (user is not null)
+        {
+            var passwordExists = await userManager.CheckPasswordAsync(user, loginVm.Password);
+            if (passwordExists)
+            {
+                var tokenDto = await tokenService.GenerateTokenDto(user);
+                var imageUrl = await minioService.PresignedGetUrl(user.AvatarUrl ?? string.Empty, CancellationToken.None);
+                tokenDto.User = new UserResponse(
+                    Id: Guid.TryParse(user.Id, out var userId) ? userId : Guid.Empty,
+                    Username: user.UserName!,
+                    Email: user.Email!,
+                    JoinedAt: user.JoinedAt,
+                    ImageUrl: imageUrl,
+                    Roles: new List<string>());
+                return Result<Token>.FromData(tokenDto);
+            }
+        }
+        return Result<Token>.FromFailure("Invalid email or password");
+    }
+
+    public async Task<Result<Token>> Register(RegisterViewModel registerVm)
+    {
+        if(registerVm.Avatar.Length == 0)
+            return Result<Token>.FromFailure("Avatar image is required");
+        
+        var appUser = new ApplicationUser(registerVm.Email,registerVm.Username);
+        var result = await userManager.CreateAsync(appUser, registerVm.Password);
+
+        if (result.Succeeded)
+        {
+            string imagePath = "";
+            try
+            {
+                imagePath = await minioService.UploadBlob(registerVm.Avatar, null, CancellationToken.None);
+            }
+            catch (Exception e)
+            {
+                logger.LogError("Error uploading avatar for user {UserId}: {ErrorMessage}", appUser.Id, e.Message);
+                throw;
+            }
+            
+            appUser.AvatarUrl = imagePath;
+
+            await userManager.AddToRoleAsync(appUser, ChooseRole(registerVm.Role));
+
+            await userManager.UpdateAsync(appUser);
+            
+            var tokenDto  = await tokenService.GenerateTokenDto(appUser);
+            
+            var emailRequest = new EmailRequest(
+                To: appUser.Email!,
+                Subject: "Registration successfully",
+                Data: new Dictionary<string, string>() { ["AppUser"] = appUser.UserName! },
+                TemplateType: EmailTemplateType.Welcome);
+            
+            await emailQueue.EnqueueAsync(emailRequest);
+            
+            var imageUrl = await minioService.PresignedGetUrl(appUser.AvatarUrl ?? string.Empty, CancellationToken.None);
+            tokenDto.User = new UserResponse(
+                Id: Guid.TryParse(appUser.Id, out var userId) ? userId : Guid.Empty,
+                Username: appUser.UserName!,
+                Email: appUser.Email!,
+                JoinedAt: appUser.JoinedAt,
+                ImageUrl: imageUrl,
+                Roles: new List<string>());
+            return Result<Token>.FromData(tokenDto);
+        }
+        return Result<Token>.FromFailure($"User {registerVm.Email} registration failed with errors: {GetErrors(result.Errors)}");
+    }
+
+    public async Task<Result<Token>> RefreshToken(string refreshToken)
+    {
+        var user = await tokenService.FindUserByRefreshToken(refreshToken);
+        if (user is null)
+            return Result<Token>.FromFailure("Invalid token");
+
+        var result = await tokenService.ValidateRefreshToken(refreshToken, user);
+
+        if (result.IsSuccessful(out _))
+        {
+            // Rotar el refresh token (nuevo token)
+            var newRefreshToken =  await tokenService.GenerateRefreshToken(user);
+            
+            var imageUrl = await minioService.PresignedGetUrl(user.AvatarUrl ?? string.Empty, CancellationToken.None);
+            var userResponse = new UserResponse(
+                Id: Guid.TryParse(user.Id, out var userId) ? userId : Guid.Empty,
+                Username: user.UserName!,
+                Email: user.Email!,
+                JoinedAt: user.JoinedAt,
+                ImageUrl: imageUrl,
+                Roles: new List<string>());
+            
+            return Result<Token>.FromData(new Token
+            {
+                AccessToken = await tokenService.GenerateAccessToken(user),
+                RefreshToken = newRefreshToken,
+                User = userResponse,
+                ExpiresIn = Convert.ToInt32(configuration["Jwt:ExpireMinutes"])
+            });
+        }
+        return Result<Token>.FromFailure("Token expired or invalid");
+    }
+
+    private static string GetErrors(IEnumerable<IdentityError> errors)
+    {
+        var stringBuilder = new StringBuilder();
+        foreach (var error in errors)
+        {
+            stringBuilder.AppendLine(error.Description);
+        }
+        return stringBuilder.ToString();
+    }
+
+    private static string ChooseRole(string role)
+    {
+        return role.ToLower().Trim() switch
+        {
+            "admin" => Roles.ADMIN,
+            "owner" => Roles.OWNER,
+            "requester" => Roles.REQUESTER,
+            _ => throw new ArgumentOutOfRangeException(nameof(role), role, null)
+        };
+    }
+}

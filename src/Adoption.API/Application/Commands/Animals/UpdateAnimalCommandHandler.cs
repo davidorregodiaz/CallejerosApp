@@ -2,7 +2,7 @@
 using Adoption.API.Application.Exceptions;
 using Adoption.API.Application.Mappers;
 using Adoption.API.Application.Models;
-using Adoption.API.Application.Services;
+using Adoption.API.Application.Services.Minio;
 using Adoption.Domain.AggregatesModel.AnimalAggregate;
 using Adoption.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
@@ -10,15 +10,13 @@ using Shared;
 
 namespace Adoption.API.Application.Commands.Animals;
 
-public class UpdateAnimalCommandHandler(AdoptionDbContext ctx, IMinioService minioService) : ICommandHandler<UpdateAnimalCommand,  AnimalResponse>
+public class UpdateAnimalCommandHandler(IAnimalRepository animalRepository, IMinioService minioService) : ICommandHandler<UpdateAnimalCommand,  AnimalResponse>
 {
     public async Task<AnimalResponse> HandleAsync(UpdateAnimalCommand command, CancellationToken cancellationToken)
     {
-        var animal =
-            await ctx.Animals.SingleOrDefaultAsync(x => x.Id == new AnimalId(command.AnimalId), cancellationToken);
-
-        if (animal is null)
-            throw new AnimalNotFoundException($"No animal with id - {command.AnimalId} found");
+        var animal = await animalRepository
+            .GetAnimalByIdAsync(command.AnimalId, cancellationToken) 
+                     ?? throw new AnimalNotFoundException($"No animal with id - {command.AnimalId} found");
 
         var principalImagePresignedUrl = await minioService.UploadBlob(command.PrincipalImage, null, cancellationToken);
 
@@ -42,8 +40,7 @@ public class UpdateAnimalCommandHandler(AdoptionDbContext ctx, IMinioService min
             aditionalImages: aditionalImagesPresignedUrls.Any() ? aditionalImagesPresignedUrls : animal.AdditionalImagesUrl?.ToList()
         );
 
-        await ctx.SaveChangesAsync(cancellationToken);
-
+        await animalRepository.UnitOfWork().SaveChangesAsync(cancellationToken);
         return animal.MapToResponse();
     }
 }

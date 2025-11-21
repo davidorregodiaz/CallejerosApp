@@ -1,10 +1,13 @@
 using Adoption.API;
+using Adoption.API.Application.Services.DbSeeder;
 using Adoption.API.Endpoints;
-using Callejeros.DefaultServices;
+using Adoption.API.Extensions;
+using Adoption.Infrastructure.Context;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddApplication();
+builder.AddIdentity();
 builder.AddDefaultAuthentication();
 
 var app = builder.Build();
@@ -20,12 +23,24 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+using (var scope = app.Services.CreateScope())
+{
+    var seeder = scope.ServiceProvider.GetRequiredService<IDbSeeder<AdoptionDbContext>>();
+    var context = scope.ServiceProvider.GetRequiredService<AdoptionDbContext>();
+    await seeder.SeedAsync(context);
+}
+
+app.UseCors("AllowReactApp");
+
 app.UseExceptionHandler();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapControllers();
 app.MapGroup("/api")
-    .MapAnimalEndpoints();
+    .MapAnimalEndpoints()
+    .MapAdoptionEndpoints()
+    .MapUserEndpoints();
 
 app.MapGet("/hello", () => "Hello World!");
 

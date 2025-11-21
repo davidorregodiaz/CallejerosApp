@@ -1,5 +1,6 @@
 using Adoption.API.Abstractions;
 using Adoption.API.Extensions;
+using Adoption.Domain.SeedWork;
 using Shared;
 
 namespace Adoption.API.Application.Behaviors;
@@ -38,6 +39,28 @@ internal static class LoggingDecorator
             logger.LogInformation("Command {CommandName} handled - with response: {@Response}", command.GetGenericTypeName(), response);
                 
             return response;
+        }
+    }
+
+    internal sealed class DomainEventHandler<TEvent>(
+        IDomainEventHandler<TEvent> innerHandler,
+        ILogger<DomainEventHandler<TEvent>> logger) :IDomainEventHandler<TEvent> where TEvent : IDomainEvent
+    {
+        public async Task HandleAsync(TEvent domainEvent, CancellationToken cancellationToken)
+        {
+            try
+            { 
+                logger.LogInformation("Handling domain event : {@event}", domainEvent);
+                await innerHandler.HandleAsync(domainEvent, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error handling domain event {DomainEventName}", domainEvent.GetGenericTypeName());
+            }
+            finally
+            {
+                logger.LogInformation("Handled Domain event {DomainEventName} successfully", domainEvent.GetGenericTypeName());
+            }
         }
     }
 }
