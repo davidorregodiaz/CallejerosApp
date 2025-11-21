@@ -1,0 +1,12 @@
+
+using Adoption.API.Application.Models.User;
+
+namespace Identity.API.Models;
+
+public class Token
+{
+    public string AccessToken { get; set; }
+    public string RefreshToken { get; set; }
+    public int ExpiresIn { get; set; }
+    public UserResponse User { get; set; }
+}

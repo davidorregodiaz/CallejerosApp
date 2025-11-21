@@ -2,9 +2,8 @@
 using Adoption.API.Abstractions;
 using Adoption.API.Application.Mappers;
 using Adoption.API.Application.Models;
-using Adoption.API.Application.Services;
+using Adoption.API.Application.Services.Minio;
 using Adoption.Domain.AggregatesModel.AnimalAggregate;
-using Shared;
 
 namespace Adoption.API.Application.Commands.Animals;
 
@@ -36,11 +35,10 @@ public class CreateAnimalCommandHandler(IAnimalRepository animalRepository, ILog
             principalImage: principalImagePresignedUrl
         );
 
-        var animalResponse = animalRepository.Add(animal).MapToResponse();
-
-        logger.LogInformation("Creating Animal - Animal : {@Animal}", animal);
-
+        animalRepository.Add(animal);
         await animalRepository.UnitOfWork().SaveChangesAsync(cancellationToken);
-        return animalResponse;
+        
+        logger.LogInformation("Creating Animal - Animal : {@Animal}", animal);
+        return animal.MapToResponse();
     }
 }

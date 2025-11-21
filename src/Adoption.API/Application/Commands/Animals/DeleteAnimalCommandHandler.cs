@@ -6,17 +6,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Adoption.API.Application.Commands.Animals;
 
-public class DeleteAnimalCommandHandler(AdoptionDbContext ctx)
+public class DeleteAnimalCommandHandler(IAnimalRepository animalRepository)
     : ICommandHandler<DeleteAnimalCommand>
 {
     public async Task HandleAsync(DeleteAnimalCommand command, CancellationToken cancellationToken)
     {
-        var animal = await ctx.Animals.SingleOrDefaultAsync(x => x.Id == new AnimalId(command.Id), cancellationToken);
+        var animal = await animalRepository
+            .GetAnimalByIdAsync(command.Id, cancellationToken) 
+                     ?? throw new AnimalNotFoundException($"Animal with id - {command.Id} was not found");
 
-        if (animal is null)
-            throw new AnimalNotFoundException($"Animal with id - {command.Id} was not found");
-
-        ctx.Animals.Remove(animal);
-        await ctx.SaveChangesAsync(cancellationToken);
+        animalRepository.Delete(animal);
+        await animalRepository.UnitOfWork().SaveChangesAsync(cancellationToken);
     }
 }
