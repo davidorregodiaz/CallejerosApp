@@ -5,6 +5,7 @@ using Adoption.Domain.AggregatesModel.AnimalAggregate;
 using Adoption.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
 using Shared;
+using Shared.Utilities;
 
 namespace Adoption.API.Application.Queries.Animals;
 

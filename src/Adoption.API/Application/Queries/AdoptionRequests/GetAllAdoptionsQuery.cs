@@ -1,6 +1,7 @@
 ﻿using Adoption.API.Abstractions;
 using Adoption.API.Application.Models;
 using Adoption.Domain.AggregatesModel.AdoptionAggregate;
+using Shared.Utilities;
 
 namespace Adoption.API.Application.Queries.AdoptionRequests;
 

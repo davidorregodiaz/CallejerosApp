@@ -31,13 +31,14 @@ public class AuthService(
             {
                 var tokenDto = await tokenService.GenerateTokenDto(user);
                 var imageUrl = await minioService.PresignedGetUrl(user.AvatarUrl ?? string.Empty, CancellationToken.None);
+                var userRoles = await userManager.GetRolesAsync(user);
                 tokenDto.User = new UserResponse(
                     Id: Guid.TryParse(user.Id, out var userId) ? userId : Guid.Empty,
                     Username: user.UserName!,
                     Email: user.Email!,
                     JoinedAt: user.JoinedAt,
                     ImageUrl: imageUrl,
-                    Roles: new List<string>());
+                    Roles: userRoles.ToList());
                 return Result<Token>.FromData(tokenDto);
             }
         }
@@ -82,13 +83,14 @@ public class AuthService(
             await emailQueue.EnqueueAsync(emailRequest);
             
             var imageUrl = await minioService.PresignedGetUrl(appUser.AvatarUrl ?? string.Empty, CancellationToken.None);
+            var userRoles = await userManager.GetRolesAsync(appUser);
             tokenDto.User = new UserResponse(
                 Id: Guid.TryParse(appUser.Id, out var userId) ? userId : Guid.Empty,
                 Username: appUser.UserName!,
                 Email: appUser.Email!,
                 JoinedAt: appUser.JoinedAt,
                 ImageUrl: imageUrl,
-                Roles: new List<string>());
+                Roles: userRoles.ToList());
             return Result<Token>.FromData(tokenDto);
         }
         return Result<Token>.FromFailure($"User {registerVm.Email} registration failed with errors: {GetErrors(result.Errors)}");
@@ -108,13 +110,14 @@ public class AuthService(
             var newRefreshToken =  await tokenService.GenerateRefreshToken(user);
             
             var imageUrl = await minioService.PresignedGetUrl(user.AvatarUrl ?? string.Empty, CancellationToken.None);
+            var userRoles = await userManager.GetRolesAsync(user);
             var userResponse = new UserResponse(
                 Id: Guid.TryParse(user.Id, out var userId) ? userId : Guid.Empty,
                 Username: user.UserName!,
                 Email: user.Email!,
                 JoinedAt: user.JoinedAt,
                 ImageUrl: imageUrl,
-                Roles: new List<string>());
+                Roles: userRoles.ToList());
             
             return Result<Token>.FromData(new Token
             {

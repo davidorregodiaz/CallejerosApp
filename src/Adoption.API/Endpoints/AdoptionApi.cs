@@ -8,6 +8,7 @@ using Adoption.API.Extensions;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Org.BouncyCastle.Asn1.Ocsp;
+using Shared.Utilities;
 
 namespace Adoption.API.Endpoints;
 
@@ -112,7 +113,7 @@ public static class AdoptionApi
         var userId = context.GetUserIdFromContext();
         
         var command = new CreateAdoptionRequestCommand(
-            RequesterId: userId,
+            RequesterId: userId ?? Guid.Empty,
             Comments: request.Comments,
             AnimalId: request.AnimalId);
         

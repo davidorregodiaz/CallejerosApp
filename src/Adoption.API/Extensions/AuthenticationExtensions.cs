@@ -53,6 +53,11 @@ public static class AuthenticationExtensions
             {
                 policy.RequireRole("SuperAdmin", "Owner", "Admin");
             });
+            
+            options.AddPolicy("UsersManagementPolicy", policy =>
+            {
+                policy.RequireRole("SuperAdmin", "Admin");
+            });
 
             options.AddPolicy("RequesterPolicy", policy =>
             {
@@ -68,7 +73,7 @@ public static class AuthenticationExtensions
         return services;
     }
     
-    public static Guid GetUserIdFromContext(this HttpContext context)
+    public static Guid? GetUserIdFromContext(this HttpContext context)
     {
         var userIdClaim = context.User.FindFirst(ClaimTypes.NameIdentifier);
         return userIdClaim != null && Guid.TryParse(userIdClaim.Value, out Guid userId) ? userId : Guid.Empty;
