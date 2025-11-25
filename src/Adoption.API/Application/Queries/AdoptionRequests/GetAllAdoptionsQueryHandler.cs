@@ -4,6 +4,7 @@ using Adoption.API.Extensions;
 using Adoption.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
 using Shared;
+using Shared.Utilities;
 
 namespace Adoption.API.Application.Queries.AdoptionRequests;
 

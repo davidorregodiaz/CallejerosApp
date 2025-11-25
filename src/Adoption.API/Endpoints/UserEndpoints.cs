@@ -1,11 +1,15 @@
 
 using Adoption.API.Abstractions;
 using Adoption.API.Application.Commands.Users;
+using Adoption.API.Application.Models;
 using Adoption.API.Application.Models.User;
 using Adoption.API.Application.Queries;
+using Adoption.API.Application.Queries.AdoptionRequests;
 using Adoption.API.Application.Queries.Users;
+using Adoption.API.Extensions;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Shared.Utilities;
 
 namespace Adoption.API.Endpoints;
 
@@ -16,6 +20,7 @@ public static class UserEndpoints
         var usersApi = app
             .MapGroup("/users")
             .WithTags("Users")
+            .RequireAuthorization("UsersManagementPolicy")
             .WithOpenApi();
 
         usersApi.MapGet("/", GetAllUsersAsync)
@@ -28,8 +33,35 @@ public static class UserEndpoints
             .Produces<Ok<UserResponse>>()
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .RequireAuthorization("SuperAdminOnlyPolicy");
+
+        usersApi.MapGet("/adoptions", GetUserAdoptions)
+            .WithSummary("Gets the adoptions made or requested by an user")
+            .Produces<Ok<PaginatedResponse<AnimalResponse>>>()
+            .Produces<NoContent>()
+            .AllowAnonymous();
             
         return usersApi;
+    }
+
+    private static async Task<Results<Ok<PaginatedResponse<AdoptionResponse>>,NoContent>> GetUserAdoptions(
+        [AsParameters] GetUserAdoptionsRequest request,
+        HttpContext context,
+        IQueryHandler<GetUserAdoptionsQuery,PaginatedResponse<AdoptionResponse>> handler,
+        CancellationToken ct = default)
+    {
+        var userIdFromContext = context.GetUserIdFromContext();
+        
+        var query = new GetUserAdoptionsQuery(
+            userIdFromContext ?? Guid.Empty,
+            request.Page,
+            request.PageSize);
+        
+        var result = await handler.HandleAsync(query, ct);
+
+        if (!result.IsSuccessful(out var response))
+            return TypedResults.NoContent();
+        
+        return TypedResults.Ok(response);
     }
 
 

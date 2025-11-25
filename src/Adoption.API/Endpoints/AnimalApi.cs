@@ -5,6 +5,7 @@ using Adoption.API.Application.Queries;
 using Adoption.API.Application.Queries.Animals;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Shared.Utilities;
 
 namespace Adoption.API.Endpoints;
 
@@ -20,7 +21,6 @@ public static class AnimalApi
         animalApi.MapPost("/", CreateAnimalAsync)
             .Accepts<CreateAnimalCommand>("multipart/form-data")
             .DisableAntiforgery()
-            .AllowAnonymous()
             .WithSummary("Creates an animal")
             .Produces<CreatedAtRoute<AnimalResponse>>(StatusCodes.Status201Created)
             .ProducesValidationProblem()

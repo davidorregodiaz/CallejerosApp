@@ -2,6 +2,8 @@
 using Adoption.Domain.SeedWork;
 using Adoption.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
+using Shared;
+using Shared.Utilities;
 
 namespace Adoption.Infrastructure.Repositories;
 
@@ -11,9 +13,10 @@ public class AdoptionRequestsRepository(AdoptionDbContext ctx) : IAdoptionReques
     public Task<AdoptionRequest?> GetByIdAsync(Guid id, CancellationToken cancellationToken) =>
         ctx.AdoptionRequests.SingleOrDefaultAsync(x => x.Id == new AdoptionRequestId(id), cancellationToken);
 
-    public Task<IEnumerable<AdoptionRequest>> GetByRequesterIdAsync(Guid requesterId)
+    public async Task<IEnumerable<AdoptionRequest>> GetAllByUserId(Guid userId, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        return await ctx.AdoptionRequests
+            .Where(x => x.RequesterId == userId).ToListAsync(cancellationToken);
     }
 
     public Task<IEnumerable<AdoptionRequest>> GetByAnimalIdAsync(Guid animalId)

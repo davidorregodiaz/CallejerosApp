@@ -148,7 +148,7 @@ public static class DependencyInjection
             options.AddPolicy("AllowReactApp", policy =>
             {
                 policy
-                    .WithOrigins("http://localhost:5173", "http://localhost:5174") 
+                    .WithOrigins("http://localhost:5173", "http://localhost:5174", "http://127.0.0.1:5173") 
                     .AllowAnyHeader()
                     .AllowAnyMethod()
                     .AllowCredentials();

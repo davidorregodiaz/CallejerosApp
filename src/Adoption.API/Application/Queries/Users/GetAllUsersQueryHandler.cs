@@ -9,6 +9,7 @@ using Adoption.Infrastructure.Context;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Shared;
+using Shared.Utilities;
 
 namespace Adoption.API.Application.Queries.Users;
 
