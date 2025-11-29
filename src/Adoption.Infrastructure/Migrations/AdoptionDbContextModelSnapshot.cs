@@ -56,12 +56,46 @@ namespace Adoption.Infrastructure.Migrations
                     b.ToTable("AdoptionRequests", "adoption");
                 });
 
+            modelBuilder.Entity("Adoption.Domain.AggregatesModel.AdoptionAggregate.Appointment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AdoptionRequestId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Location")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Notes")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AdoptionRequestId");
+
+                    b.ToTable("Appointments", "adoption");
+                });
+
             modelBuilder.Entity("Adoption.Domain.AggregatesModel.AnimalAggregate.Animal", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
                     b.Property<string>("AdditionalImagesUrl")
+                        .HasColumnType("text");
+
+                    b.Property<string>("AdoptionRequirements")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int>("Age")
@@ -73,6 +107,11 @@ namespace Adoption.Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)")
                         .HasColumnName("Breed");
+
+                    b.Property<string>("Compatibility")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("Compatibility");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -102,7 +141,20 @@ namespace Adoption.Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("OwnerId");
 
+                    b.Property<string>("Personality")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("Personality");
+
                     b.Property<string>("PrincipalImage")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Sex")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Size")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -111,6 +163,10 @@ namespace Adoption.Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)")
                         .HasColumnName("Species");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -319,6 +375,52 @@ namespace Adoption.Infrastructure.Migrations
                     b.ToTable("AspNetUserTokens", "adoption");
                 });
 
+            modelBuilder.Entity("Adoption.Domain.AggregatesModel.AdoptionAggregate.Appointment", b =>
+                {
+                    b.HasOne("Adoption.Domain.AggregatesModel.AdoptionAggregate.AdoptionRequest", null)
+                        .WithMany("Appointments")
+                        .HasForeignKey("AdoptionRequestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Adoption.Domain.AggregatesModel.AnimalAggregate.Animal", b =>
+                {
+                    b.OwnsOne("Adoption.Domain.AggregatesModel.AnimalAggregate.MedicalRecord", "MedicalRecord", b1 =>
+                        {
+                            b1.Property<Guid>("AnimalId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<string>("HealthState")
+                                .IsRequired()
+                                .HasColumnType("text")
+                                .HasColumnName("HealthState");
+
+                            b1.Property<bool>("IsDewormed")
+                                .HasColumnType("boolean")
+                                .HasColumnName("IsDewormed");
+
+                            b1.Property<bool>("IsStirilized")
+                                .HasColumnType("boolean")
+                                .HasColumnName("IsStirilized");
+
+                            b1.Property<string>("Vaccine")
+                                .IsRequired()
+                                .HasColumnType("text")
+                                .HasColumnName("Vaccine");
+
+                            b1.HasKey("AnimalId");
+
+                            b1.ToTable("AnimalMedicalRecords", "adoption");
+
+                            b1.WithOwner()
+                                .HasForeignKey("AnimalId");
+                        });
+
+                    b.Navigation("MedicalRecord")
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -368,6 +470,11 @@ namespace Adoption.Infrastructure.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Adoption.Domain.AggregatesModel.AdoptionAggregate.AdoptionRequest", b =>
+                {
+                    b.Navigation("Appointments");
                 });
 #pragma warning restore 612, 618
         }

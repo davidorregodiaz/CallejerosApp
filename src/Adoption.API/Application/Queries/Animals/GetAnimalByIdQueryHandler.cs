@@ -1,5 +1,8 @@
 ﻿using Adoption.API.Abstractions;
+using Adoption.API.Application.Commands.Animals;
 using Adoption.API.Application.Models;
+using Adoption.API.Application.Services.Mappers;
+using Adoption.API.Application.Services.Minio;
 using Adoption.Domain.AggregatesModel.AnimalAggregate;
 using Adoption.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
@@ -7,27 +10,18 @@ using Shared;
 
 namespace Adoption.API.Application.Queries.Animals;
 
-public class GetAnimalByIdQueryHandler(AdoptionDbContext ctx)
-    : IQueryHandler<GetAnimalByIdQuery, AnimalResponse>
+public class GetAnimalByIdQueryHandler(AdoptionDbContext ctx, IAnimalMapper animalMapper)
+    : IQueryHandler<GetAnimalByIdQuery, AnimalViewModel>
 {
-    public async Task<Result<AnimalResponse>> HandleAsync(GetAnimalByIdQuery query, CancellationToken cancellationToken)
+    public async Task<Result<AnimalViewModel>> HandleAsync(GetAnimalByIdQuery query, CancellationToken cancellationToken)
     {
         var animal = await ctx.Animals.SingleOrDefaultAsync(x => x.Id == new AnimalId(query.Id), cancellationToken);
         
         if(animal is null)
-            return Result<AnimalResponse>.FromFailure($"Animal with id - {query.Id} not found.");
-
-        var animalResponse = new AnimalResponse(
-            Id: animal.Id.Value,
-            OwnerId: animal.OwnerId.Value,
-            Name: animal.Name,
-            Species: animal.Species,
-            Breed: animal.Breed,
-            Age: animal.Age,
-            Description: animal.Description,
-            PrincipalImageUrl: animal.PrincipalImage,
-            ExtraImagesUrls: animal.AdditionalImagesUrl?.ToList());
+            return Result<AnimalViewModel>.FromFailure($"Animal with id - {query.Id} not found.");
         
-        return Result<AnimalResponse>.FromData(animalResponse);
+        var animalResponse = await animalMapper.MapToResponse(animal, cancellationToken);
+        
+        return Result<AnimalViewModel>.FromData(animalResponse);
     }
 }

@@ -14,14 +14,14 @@ using Shared.Utilities;
 namespace Adoption.API.Application.Queries.Users;
 
 public class GetAllUsersQueryHandler(AdoptionDbContext ctx, RoleManager<IdentityRole> roleManager, UserManager<ApplicationUser> userManager, IMinioService minioService)
-    : IQueryHandler<GetAllUsersQuery, PaginatedResponse<UserResponse>>
+    : IQueryHandler<GetAllUsersQuery, PaginatedResponse<UserViewModel>>
 {
-    public async Task<Result<PaginatedResponse<UserResponse>>> HandleAsync(GetAllUsersQuery query, CancellationToken cancellationToken)
+    public async Task<Result<PaginatedResponse<UserViewModel>>> HandleAsync(GetAllUsersQuery query, CancellationToken cancellationToken)
     {
         var queryable = ctx.Users.AsNoTracking().AsQueryable();
 
         if (!queryable.Any())
-            return Result<PaginatedResponse<UserResponse>>.FromFailure("No users register");
+            return Result<PaginatedResponse<UserViewModel>>.FromFailure("No users register");
 
         int page = query.Page;
         int pageSize = query.PageSize;
@@ -38,13 +38,13 @@ public class GetAllUsersQueryHandler(AdoptionDbContext ctx, RoleManager<Identity
         users = users.OrderByProperty(query.SortBy, query.IsDescending)
             .PaginatePage(page, pageSize);
 
-        var userResponses = new List<UserResponse>();
+        var userResponses = new List<UserViewModel>();
 
         foreach (var user in users)
         {
             var roles = (await userManager.GetRolesAsync(user)).ToList();
             var imageUrl = await minioService.PresignedGetUrl(user.AvatarUrl ?? string.Empty, cancellationToken);
-            userResponses.Add(new UserResponse(
+            userResponses.Add(new UserViewModel(
                 Id: Guid.TryParse(user.Id, out var result) ? result : Guid.Empty,
                 Username: user.UserName!,
                 Email: user.Email!,
@@ -53,7 +53,7 @@ public class GetAllUsersQueryHandler(AdoptionDbContext ctx, RoleManager<Identity
                 Roles: roles));
         }
         
-        var paginatedResponse = new PaginatedResponse<UserResponse>
+        var paginatedResponse = new PaginatedResponse<UserViewModel>
         {
             Data = userResponses,
             TotalCount = totalCount,
@@ -61,6 +61,6 @@ public class GetAllUsersQueryHandler(AdoptionDbContext ctx, RoleManager<Identity
             PageSize = query.PageSize,
         };
 
-        return Result<PaginatedResponse<UserResponse>>.FromData(paginatedResponse);
+        return Result<PaginatedResponse<UserViewModel>>.FromData(paginatedResponse);
     }
 }

@@ -86,6 +86,7 @@ public class AdoptionDbContext
         modelBuilder.HasDefaultSchema("adoption");
         modelBuilder.ApplyConfiguration(new AdoptionRequestEntityTypeConfiguration());
         modelBuilder.ApplyConfiguration(new AnimalEntityTypeConfiguration());
+        modelBuilder.ApplyConfiguration(new AppointmentEntityConfiguration());
         base.OnModelCreating(modelBuilder);
     }
 

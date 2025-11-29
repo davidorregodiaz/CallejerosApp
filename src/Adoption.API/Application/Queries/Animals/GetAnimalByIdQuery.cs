@@ -3,4 +3,4 @@ using Adoption.API.Application.Models;
 
 namespace Adoption.API.Application.Queries.Animals;
 
-public record GetAnimalByIdQuery(Guid Id) : IQuery<AnimalResponse>;
+public record GetAnimalByIdQuery(Guid Id) : IQuery<AnimalViewModel>;

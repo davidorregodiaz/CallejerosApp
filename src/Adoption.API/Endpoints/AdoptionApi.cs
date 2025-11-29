@@ -21,7 +21,7 @@ public static class AdoptionApi
             .WithTags("Adoptions");
 
         adoptionApi.MapPost("/", CreateAdoptionRequestAsync)
-            .Produces<CreatedAtRoute<AdoptionResponse>>(StatusCodes.Status201Created)
+            .Produces<CreatedAtRoute<AdoptionViewModel>>(StatusCodes.Status201Created)
             .ProducesProblem(statusCode: StatusCodes.Status500InternalServerError)
             .ProducesValidationProblem()
             .RequireAuthorization("RequesterPolicy");
@@ -29,7 +29,7 @@ public static class AdoptionApi
         adoptionApi.MapGet("/{Id:guid}", GetAdoptionRequestByIdAsync)
             .WithName("GetAdoptionRequestById")
             .WithSummary("Gets an adoption request by id")
-            .Produces<Ok<AdoptionResponse>>()
+            .Produces<Ok<AdoptionViewModel>>()
             .Produces<NotFound<string>>(StatusCodes.Status404NotFound)
             .AllowAnonymous();
         
@@ -37,7 +37,7 @@ public static class AdoptionApi
             .WithName("GetAllAdoptionRequests")
             .WithSummary("Lists all the adoption requests.")
             .Produces<NoContent>()
-            .Produces<Ok<PaginatedResponse<AdoptionResponse>>>()
+            .Produces<Ok<PaginatedResponse<AdoptionViewModel>>>()
             .AllowAnonymous();
 
         adoptionApi.MapDelete("/{Id:guid}", DeleteAdoptionRequestAsync)
@@ -49,17 +49,32 @@ public static class AdoptionApi
 
         adoptionApi.MapPut("/{Id:guid}", UpdateAdoptionRequestAsync)
             .WithSummary("Updates an adoption request")
-            .Produces<Ok<AdoptionResponse>>(statusCode: StatusCodes.Status200OK)
+            .Produces<Ok<AdoptionViewModel>>(statusCode: StatusCodes.Status200OK)
             .ProducesProblem(statusCode: StatusCodes.Status500InternalServerError)
             .RequireAuthorization("OwnerPolicy");
         
         return app;
     }
 
-    private static async Task<Results<Ok<AdoptionResponse>, ProblemHttpResult>> UpdateAdoptionRequestAsync(
+    private static async Task<Results<Ok<AppointmentViewModel>, ProblemHttpResult>> CreateAdoptionRequestAppointmentAsync(
+        CreateAdoptionRequestAppointmentRequest request,
+        ICommandHandler<CreateAdoptionRequestAppointmentCommand, AppointmentViewModel> handler,
+        CancellationToken cancellationToken = default)
+    {
+        var command = new CreateAdoptionRequestAppointmentCommand(
+            AdoptionRequestid: request.AdoptionRequestId,
+            Date: request.Date,
+            Notes: request.Notes,
+            Location: request.Location);
+        
+        var response = await handler.HandleAsync(command,cancellationToken);
+        return TypedResults.Ok(response);
+    }
+
+    private static async Task<Results<Ok<AdoptionViewModel>, ProblemHttpResult>> UpdateAdoptionRequestAsync(
         [FromRoute] Guid id,
-        UpdateAdoptionRequestBody request,
-        ICommandHandler<UpdateAdoptionRequestCommand, AdoptionResponse> handler,
+        UpdateAdoptionRequest request,
+        ICommandHandler<UpdateAdoptionRequestCommand, AdoptionViewModel> handler,
         CancellationToken cancellationToken = default)
     {
         var command = new UpdateAdoptionRequestCommand(
@@ -70,19 +85,34 @@ public static class AdoptionApi
     }
 
     private static async Task<Results<NoContent, ProblemHttpResult>> DeleteAdoptionRequestAsync(
-        [AsParameters] DeleteAdoptionRequestCommand command,
+        [AsParameters] DeleteAdoptionRequest request,
         ICommandHandler<DeleteAdoptionRequestCommand> handler,
         CancellationToken cancellationToken = default)
     {
+        var command = new DeleteAdoptionRequestCommand(request.Id);
+        
         await handler.HandleAsync(command, cancellationToken);
         return TypedResults.NoContent();
     }
 
-    private static async Task<Results<Ok<PaginatedResponse<AdoptionResponse>>,NoContent>> GetAllAdoptionsRequestAsync(
-        [AsParameters] GetAllAdoptionsQuery query,
-        IQueryHandler<GetAllAdoptionsQuery, PaginatedResponse<AdoptionResponse>> handler,
+    private static async Task<Results<Ok<PaginatedResponse<AdoptionViewModel>>,NoContent>> GetAllAdoptionsRequestAsync(
+        [AsParameters] GetAllAdoptionsQueryRequest request,
+        HttpContext httpContext,
+        IQueryHandler<GetAllAdoptionsQuery, PaginatedResponse<AdoptionViewModel>> handler,
         CancellationToken cancellationToken = default)
     {
+
+        var userId = httpContext.GetUserIdFromContext();
+        
+        var query = new GetAllAdoptionsQuery(
+            UserId: userId ?? Guid.Empty,
+            Status: request.Status,
+            Date: request.Date,
+            Page:  request.Page,
+            PageSize: request.PageSize,
+            SortBy: request.SortBy,
+            IsDescending: request.IsDescending);
+        
         var result = await handler.HandleAsync(query, cancellationToken);
         
         if (!result.IsSuccessful(out var response))
@@ -91,9 +121,9 @@ public static class AdoptionApi
         return TypedResults.Ok(response);
     }
 
-    private static async Task<Results<Ok<AdoptionResponse>, NotFound<string>>> GetAdoptionRequestByIdAsync(
+    private static async Task<Results<Ok<AdoptionViewModel>, NotFound<string>>> GetAdoptionRequestByIdAsync(
         [AsParameters] GetAdoptionRequestByIdQuery query,
-        IQueryHandler<GetAdoptionRequestByIdQuery,  AdoptionResponse> handler,
+        IQueryHandler<GetAdoptionRequestByIdQuery,  AdoptionViewModel> handler,
         CancellationToken cancellationToken = default)
     {
         var result = await handler.HandleAsync(query, cancellationToken);
@@ -104,9 +134,9 @@ public static class AdoptionApi
         return TypedResults.Ok(response);
     }
 
-    private static async Task<Results<CreatedAtRoute<AdoptionResponse>, ProblemHttpResult>> CreateAdoptionRequestAsync(
+    private static async Task<Results<CreatedAtRoute<AdoptionViewModel>, ProblemHttpResult>> CreateAdoptionRequestAsync(
         CreateAdoptionRequest request,
-        ICommandHandler<CreateAdoptionRequestCommand, AdoptionResponse> handler,
+        ICommandHandler<CreateAdoptionRequestCommand, AdoptionViewModel> handler,
         HttpContext context,
         CancellationToken cancellationToken = default)
     {

@@ -1,5 +1,6 @@
 
 
+using Adoption.API.Application.Models;
 using Shared;
 
 namespace Adoption.API.Abstractions;

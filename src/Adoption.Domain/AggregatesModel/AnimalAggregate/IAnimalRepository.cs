@@ -9,4 +9,5 @@ public interface IAnimalRepository : IRepository<Animal>
     Task<Animal?> GetAnimalByIdAsync(Guid id, CancellationToken cancellationToken);
     void Add(Animal animal);
     void Delete(Animal animal);
+    Task<IEnumerable<Animal>> GetAnimalsByUserId(Guid id, CancellationToken cancellationToken);
 }

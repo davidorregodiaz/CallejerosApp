@@ -10,7 +10,7 @@ public interface IAdoptionRequestRepository : IRepository<AdoptionRequest>
     IUnitOfWork UnitOfWork();
     Task<AdoptionRequest?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
     Task<IEnumerable<AdoptionRequest>> GetAllByUserId(Guid userId, CancellationToken cancellationToken);
-    Task<IEnumerable<AdoptionRequest>> GetByAnimalIdAsync(Guid animalId);
+    IQueryable<AdoptionRequest> GetByAnimalIdAsync(Guid animalId, CancellationToken cancellationToken);
     void Add(AdoptionRequest adoptionRequest);
     void Delete(AdoptionRequest adoptionRequest);
     Task<bool> HaveAssociatedRequestsAsync(Guid userId, CancellationToken cancellationToken);

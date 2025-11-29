@@ -6,4 +6,4 @@ namespace Adoption.API.Application.Commands.AdoptionRequests;
 public record CreateAdoptionRequestCommand(
     Guid RequesterId,
     Guid AnimalId,
-    string Comments) : ICommand<AdoptionResponse>;
+    string Comments) : ICommand<AdoptionViewModel>;

@@ -1,22 +1,32 @@
 ﻿using Adoption.API.Abstractions;
 using Adoption.API.Application.Models;
+using Adoption.API.Application.Services.Mappers;
 using Adoption.API.Extensions;
+using Adoption.Domain.AggregatesModel.AdoptionAggregate;
+using Adoption.Domain.AggregatesModel.AnimalAggregate;
+using Adoption.Domain.AggregatesModel.UserAggregate;
 using Adoption.Infrastructure.Context;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Shared;
 using Shared.Utilities;
 
 namespace Adoption.API.Application.Queries.AdoptionRequests;
 
-public class GetAllAdoptionsQueryHandler(AdoptionDbContext ctx)
-    : IQueryHandler<GetAllAdoptionsQuery, PaginatedResponse<AdoptionResponse>>
+public class GetAllAdoptionsQueryHandler(
+    AdoptionDbContext ctx, 
+    IAnimalRepository  animalRepository,
+    IAdoptionMapper adoptionMapper, 
+    UserManager<ApplicationUser> userManager,
+    ILogger<GetAllAdoptionsQueryHandler> logger)
+    : IQueryHandler<GetAllAdoptionsQuery, PaginatedResponse<AdoptionViewModel>>
 {
-    public async Task<Result<PaginatedResponse<AdoptionResponse>>> HandleAsync(GetAllAdoptionsQuery query, CancellationToken cancellationToken)
+    public async Task<Result<PaginatedResponse<AdoptionViewModel>>> HandleAsync(GetAllAdoptionsQuery query, CancellationToken cancellationToken)
     {
         var queryable = ctx.AdoptionRequests.AsQueryable();
         
         if(!queryable.Any())
-            return Result<PaginatedResponse<AdoptionResponse>>.FromFailure("No adoption requests found");
+            return Result<PaginatedResponse<AdoptionViewModel>>.FromFailure("No adoption requests found");
             
         int page = query.Page;
         int pageSize = query.PageSize;
@@ -26,9 +36,29 @@ public class GetAllAdoptionsQueryHandler(AdoptionDbContext ctx)
         
         if(pageSize < 1)
             pageSize = 10;
-        
-        if(query.RequesterId.HasValue)
-            queryable = queryable.Where(x => x.RequesterId == query.RequesterId);
+
+        //Filtrado por ID de Usuario y su Rol
+        if (query.UserId.HasValue)
+        {
+            var user = await userManager.FindByIdAsync(query.UserId.ToString());
+            
+            if(user == null)
+                return Result<PaginatedResponse<AdoptionViewModel>>.FromFailure("User not found");
+
+            if (await userManager.IsInRoleAsync(user, Roles.OWNER))
+            {
+                var animals = await animalRepository
+                    .GetAnimalsByUserId(Guid.TryParse(user.Id, out var userId) ? userId : Guid.Empty, cancellationToken);
+                
+                var animalsIds = animals.Select(a => a.Id.Value).ToList();
+
+                queryable = queryable.Where(adoption => animalsIds.Contains(adoption.AnimalId));
+            }
+            else
+            {
+                queryable = queryable.Where(adoption => adoption.RequesterId == query.UserId);
+            }
+        }
         
         if(query.Date.HasValue)
             queryable = queryable.Where(x => x.RequestDate == query.Date);
@@ -42,19 +72,14 @@ public class GetAllAdoptionsQueryHandler(AdoptionDbContext ctx)
         adoptions = adoptions.OrderByProperty(query.SortBy, query.IsDescending)
             .PaginatePage(page, pageSize);
         
-        var paginatedResponse = new PaginatedResponse<AdoptionResponse>
+        var paginatedResponse = new PaginatedResponse<AdoptionViewModel>
         {
-            Data = adoptions.Select(x => new AdoptionResponse(
-                AdoptionRequestId: x.Id.Value,
-                RequesterId: x.RequesterId,
-                RequestDate: x.RequestDate,
-                Status: x.Status,
-                Comments: x.Comments)),
+            Data = await Task.WhenAll(adoptions.Select(async adoption => await adoptionMapper.MapToResponseAsync(adoption, cancellationToken))),
             TotalCount = totalCount,
             Page = query.Page,
             PageSize = query.PageSize,
         };
         
-        return Result<PaginatedResponse<AdoptionResponse>>.FromData(paginatedResponse);
+        return Result<PaginatedResponse<AdoptionViewModel>>.FromData(paginatedResponse);
     }
 }

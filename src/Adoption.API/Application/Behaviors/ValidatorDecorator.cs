@@ -1,4 +1,5 @@
 using Adoption.API.Abstractions;
+using Adoption.API.Application.Models;
 using Adoption.API.Extensions;
 using FluentValidation;
 using Shared;

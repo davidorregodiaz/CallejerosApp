@@ -13,4 +13,4 @@ public record GetAllAnimalsQuery(
     string SortBy = "AnimalId",
     int Page = 1,
     int PageSize = 10,
-    bool IsDescending = false) : IQuery<PaginatedResponse<AnimalResponse>>;
+    bool IsDescending = false) : IQuery<PaginatedResponse<AnimalViewModel>>;

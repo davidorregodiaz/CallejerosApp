@@ -24,6 +24,8 @@ public sealed class AdoptionRequest
     public DateTime RequestDate { get; private set; }
     public AdoptionStatus Status { get; private set; }
     public string Comments { get; private set; }
+    private List<Appointment> _appointments = new();
+    public IReadOnlyCollection<Appointment> Appointments => _appointments.AsReadOnly();
     public static AdoptionRequest Create(Guid animalId, Guid requesterId, string comments) => 
         new AdoptionRequest(new AdoptionRequestId(Guid.NewGuid()), animalId, requesterId, comments);
     public void Approve()
@@ -40,6 +42,22 @@ public sealed class AdoptionRequest
     {
         Status = AdoptionStatus.Completed;
         AddDomainEvent(new AdoptionStatusChangeDomainEvent(Status, RequesterId, Id.Value));
+    }
+    public void AddAppointment(DateTime date, string notes, string location)
+    {
+        if (Status != AdoptionStatus.Approved)
+            throw new AdoptionDomainException("Cannot schedule appointment if adoption is not approved.");
+
+        _appointments.Add(Appointment.Create(date,notes,location));
+    }
+
+    public void CancelAppointment(Guid appointmentId)
+    {
+        var appointment = _appointments.SingleOrDefault(x => x.Id == new AppointmentId(appointmentId));
+        if (appointment == null)
+            throw new AdoptionDomainException(nameof(Appointment));
+
+        appointment.Cancel();
     }
 }
 public record AdoptionRequestId(Guid Value);
