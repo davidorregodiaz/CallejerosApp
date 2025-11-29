@@ -9,4 +9,4 @@ public record class GetAllUsersQuery(
     int Page = 1,
     int PageSize = 10,
     bool IsDescending = false
-) : IQuery<PaginatedResponse<UserResponse>>;
+) : IQuery<PaginatedResponse<UserViewModel>>;

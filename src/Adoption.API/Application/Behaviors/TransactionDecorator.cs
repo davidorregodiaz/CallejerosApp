@@ -1,4 +1,5 @@
 using Adoption.API.Abstractions;
+using Adoption.API.Application.Models;
 using Adoption.API.Extensions;
 using Adoption.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
@@ -46,8 +47,6 @@ internal static class TransactionDecorator
 
                         await ctx.CommitTransactionAsync(transaction);
                     }
-
-                    // await _orderingIntegrationEventService.PublishEventsThroughEventBusAsync(transactionId);
                 });
 
                 return response!;

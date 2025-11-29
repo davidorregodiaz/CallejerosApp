@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
+using Adoption.API.Application.Models;
 using Adoption.API.Utils.Options;
 using Adoption.Domain.AggregatesModel.UserAggregate;
 using Adoption.Infrastructure.Context;
@@ -89,12 +90,12 @@ public class TokenService
         return tokenString;
     }
 
-    public async Task<Token> GenerateTokenDto(ApplicationUser appUser)
+    public async Task<TokenViewModel> GenerateTokenDto(ApplicationUser appUser)
     {
         var accessToken = await GenerateAccessToken(appUser);
         var refreshToken = await GenerateRefreshToken(appUser);
 
-        return new Token
+        return new TokenViewModel
         {
             AccessToken = accessToken,
             RefreshToken = refreshToken,

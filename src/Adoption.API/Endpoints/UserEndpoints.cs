@@ -26,27 +26,32 @@ public static class UserEndpoints
         usersApi.MapGet("/", GetAllUsersAsync)
             .WithSummary("Lists all the users in the system")
             .Produces(StatusCodes.Status204NoContent)
-            .Produces(StatusCodes.Status200OK, responseType: typeof(PaginatedResponse<UserResponse>));
+            .Produces(StatusCodes.Status200OK, responseType: typeof(PaginatedResponse<UserViewModel>));
 
         usersApi.MapPost("/grant_admin_permissions", GrantsUserAdminPermissions)
             .WithSummary("Provide the specified user with admin privileges")
-            .Produces<Ok<UserResponse>>()
+            .Produces<Ok<UserViewModel>>()
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .RequireAuthorization("SuperAdminOnlyPolicy");
 
         usersApi.MapGet("/adoptions", GetUserAdoptions)
             .WithSummary("Gets the adoptions made or requested by an user")
-            .Produces<Ok<PaginatedResponse<AnimalResponse>>>()
+            .Produces<Ok<PaginatedResponse<AdoptionViewModel>>>()
+            .Produces<NoContent>();
+        
+        usersApi.MapGet("/animals", GetUserAnimals)
+            .WithSummary("Gets the animals associated to an user")
+            .Produces<Ok<PaginatedResponse<AnimalViewModel>>>()
             .Produces<NoContent>()
             .AllowAnonymous();
             
         return usersApi;
     }
 
-    private static async Task<Results<Ok<PaginatedResponse<AdoptionResponse>>,NoContent>> GetUserAdoptions(
+    private static async Task<Results<Ok<PaginatedResponse<AdoptionViewModel>>,NoContent>> GetUserAdoptions(
         [AsParameters] GetUserAdoptionsRequest request,
         HttpContext context,
-        IQueryHandler<GetUserAdoptionsQuery,PaginatedResponse<AdoptionResponse>> handler,
+        IQueryHandler<GetUserAdoptionsQuery,PaginatedResponse<AdoptionViewModel>> handler,
         CancellationToken ct = default)
     {
         var userIdFromContext = context.GetUserIdFromContext();
@@ -63,11 +68,32 @@ public static class UserEndpoints
         
         return TypedResults.Ok(response);
     }
+    
+    private static async Task<Results<Ok<PaginatedResponse<AnimalViewModel>>,NoContent>> GetUserAnimals(
+        [AsParameters] GetUserAnimalsRequest request,
+        HttpContext context,
+        IQueryHandler<GetUserAnimalsQuery,PaginatedResponse<AnimalViewModel>> handler,
+        CancellationToken ct = default)
+    {
+        var userIdFromContext = context.GetUserIdFromContext();
+        
+        var query = new GetUserAnimalsQuery(
+            userIdFromContext ?? Guid.Empty,
+            request.Page,
+            request.PageSize);
+        
+        var result = await handler.HandleAsync(query, ct);
+
+        if (!result.IsSuccessful(out var response))
+            return TypedResults.NoContent();
+        
+        return TypedResults.Ok(response);
+    }
 
 
-    private static async Task<Results<Ok<PaginatedResponse<UserResponse>>, NoContent>> GetAllUsersAsync(
+    private static async Task<Results<Ok<PaginatedResponse<UserViewModel>>, NoContent>> GetAllUsersAsync(
         [AsParameters] GetAllUsersQuery query,
-        IQueryHandler<GetAllUsersQuery, PaginatedResponse<UserResponse>> handler,
+        IQueryHandler<GetAllUsersQuery, PaginatedResponse<UserViewModel>> handler,
         CancellationToken ct = default)
     {
         var result = await handler.HandleAsync(query, ct);
@@ -80,9 +106,9 @@ public static class UserEndpoints
         return TypedResults.Ok(response);
     }
 
-    private static async Task<Results<Ok<UserResponse>,ProblemHttpResult>> GrantsUserAdminPermissions(
+    private static async Task<Results<Ok<UserViewModel>,ProblemHttpResult>> GrantsUserAdminPermissions(
         [AsParameters] GrantsUserPermissionsCommand command,
-        ICommandHandler<GrantsUserPermissionsCommand, UserResponse> handler,
+        ICommandHandler<GrantsUserPermissionsCommand, UserViewModel> handler,
         CancellationToken ct = default
     )
     {

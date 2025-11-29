@@ -4,4 +4,4 @@ using Adoption.API.Application.Models;
 namespace Adoption.API.Application.Queries.AdoptionRequests;
 
 public record GetAdoptionRequestByIdQuery(
-    Guid Id) : IQuery<AdoptionResponse>;
+    Guid Id) : IQuery<AdoptionViewModel>;

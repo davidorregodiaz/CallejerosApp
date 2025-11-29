@@ -1,5 +1,8 @@
 ﻿using Adoption.API.Abstractions;
+using Adoption.API.Application.Commands.Animals;
 using Adoption.API.Application.Models;
+using Adoption.API.Application.Services.Mappers;
+using Adoption.API.Application.Services.Minio;
 using Adoption.API.Extensions;
 using Adoption.Domain.AggregatesModel.AnimalAggregate;
 using Adoption.Infrastructure.Context;
@@ -9,15 +12,15 @@ using Shared.Utilities;
 
 namespace Adoption.API.Application.Queries.Animals;
 
-public class GetAllAnimalsQueryHandler(AdoptionDbContext ctx)
-    : IQueryHandler<GetAllAnimalsQuery, PaginatedResponse<AnimalResponse>>
+public class GetAllAnimalsQueryHandler(AdoptionDbContext ctx, IAnimalMapper animalMapper)
+    : IQueryHandler<GetAllAnimalsQuery, PaginatedResponse<AnimalViewModel>>
 {
-    public async Task<Result<PaginatedResponse<AnimalResponse>>> HandleAsync(GetAllAnimalsQuery query, CancellationToken cancellationToken)
+    public async Task<Result<PaginatedResponse<AnimalViewModel>>> HandleAsync(GetAllAnimalsQuery query, CancellationToken cancellationToken)
     {
         var queryable = ctx.Animals.AsNoTracking().AsQueryable();
 
         if (!queryable.Any())
-            return Result<PaginatedResponse<AnimalResponse>>.FromFailure("No animals available");
+            return Result<PaginatedResponse<AnimalViewModel>>.FromFailure("No animals available");
         
         int page = query.Page;
         int pageSize = query.PageSize;
@@ -59,24 +62,15 @@ public class GetAllAnimalsQueryHandler(AdoptionDbContext ctx)
             .PaginatePage(page, pageSize);
         
 
-        var paginatedResponse = new PaginatedResponse<AnimalResponse>
+        var paginatedResponse = new PaginatedResponse<AnimalViewModel>
         {
-            Data = animals.Select(x => new AnimalResponse(
-                Id: x.Id.Value,
-                OwnerId: x.OwnerId.Value,
-                Name: x.Name,
-                Species: x.Species,
-                Breed: x.Breed,
-                Age : x.Age,
-                Description: x.Description,
-                PrincipalImageUrl: x.PrincipalImage,
-                ExtraImagesUrls: x.AdditionalImagesUrl?.ToList()
-            )),
+            Data = await Task.WhenAll(
+                animals.Select(async animal => await animalMapper.MapToResponse(animal, cancellationToken))),
             TotalCount = totalCount,
             Page = query.Page,
             PageSize = query.PageSize,
         };
         
-        return Result<PaginatedResponse<AnimalResponse>>.FromData(paginatedResponse);
+        return Result<PaginatedResponse<AnimalViewModel>>.FromData(paginatedResponse);
     }
 }

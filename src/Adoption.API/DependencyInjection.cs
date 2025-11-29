@@ -5,6 +5,7 @@ using Adoption.API.Application.Queues;
 using Adoption.API.Application.Services.Auth;
 using Adoption.API.Application.Services.DbSeeder;
 using Adoption.API.Application.Services.Email;
+using Adoption.API.Application.Services.Mappers;
 using Adoption.API.Application.Services.Minio;
 using Adoption.API.Middlewares;
 using Adoption.API.Utils.Options;
@@ -92,7 +93,10 @@ public static class DependencyInjection
 
         builder.Services.AddScoped<IAnimalRepository, AnimalRepository>();
         builder.Services.AddScoped<IAdoptionRequestRepository, AdoptionRequestsRepository>();
+        builder.Services.AddScoped<IUserRepository, UserRepository>();
         builder.Services.AddScoped<IMinioService, MinioService>();
+        builder.Services.AddScoped<IAnimalMapper, AnimalMapper>();
+        builder.Services.AddScoped<IAdoptionMapper, AdoptionMapper>();
 
         builder.Services.Scan(scan => scan.FromAssembliesOf(typeof(DependencyInjection))
             .AddClasses(classes => classes.AssignableTo(typeof(IQueryHandler<,>)), publicOnly: false)

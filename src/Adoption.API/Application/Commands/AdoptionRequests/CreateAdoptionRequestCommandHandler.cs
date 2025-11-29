@@ -1,23 +1,23 @@
 ﻿using Adoption.API.Abstractions;
 using Adoption.API.Application.Exceptions;
-using Adoption.API.Application.Mappers;
 using Adoption.API.Application.Models;
+using Adoption.API.Application.Services.Mappers;
 using Adoption.Domain.AggregatesModel.AdoptionAggregate;
 using Adoption.Domain.AggregatesModel.AnimalAggregate;
 using Adoption.Domain.AggregatesModel.UserAggregate;
-using Adoption.Infrastructure.Context;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 
 namespace Adoption.API.Application.Commands.AdoptionRequests;
 
 public class CreateAdoptionRequestCommandHandler(
     IAnimalRepository animalRepository,
     IAdoptionRequestRepository adoptionRepository,
-    UserManager<ApplicationUser>  userManager)
-    : ICommandHandler<CreateAdoptionRequestCommand, AdoptionResponse>
+    UserManager<ApplicationUser>  userManager,
+    IAdoptionMapper adoptionMapper)
+    : ICommandHandler<CreateAdoptionRequestCommand, AdoptionViewModel>
 {
-    public async Task<AdoptionResponse> HandleAsync(CreateAdoptionRequestCommand command, CancellationToken cancellationToken)
+    public async Task<AdoptionViewModel> HandleAsync(CreateAdoptionRequestCommand command,
+        CancellationToken cancellationToken)
     {
         var animal = await animalRepository
             .GetAnimalByIdAsync(command.AnimalId, cancellationToken) 
@@ -41,6 +41,6 @@ public class CreateAdoptionRequestCommandHandler(
         adoptionRepository.Add(adoptionRequest);
         await adoptionRepository.UnitOfWork().SaveEntitiesAsync(cancellationToken);
         
-        return adoptionRequest.MapToResponse();
+        return await adoptionMapper.MapToResponseAsync(adoptionRequest, cancellationToken);
     }
 }

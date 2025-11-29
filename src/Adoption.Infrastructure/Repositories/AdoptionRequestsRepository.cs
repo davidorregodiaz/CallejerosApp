@@ -19,9 +19,9 @@ public class AdoptionRequestsRepository(AdoptionDbContext ctx) : IAdoptionReques
             .Where(x => x.RequesterId == userId).ToListAsync(cancellationToken);
     }
 
-    public Task<IEnumerable<AdoptionRequest>> GetByAnimalIdAsync(Guid animalId)
+    public IQueryable<AdoptionRequest> GetByAnimalIdAsync(Guid animalId, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        return ctx.AdoptionRequests.Where(x => x.AnimalId == animalId);
     }
 
     public void Add(AdoptionRequest adoptionRequest) => ctx.Add(adoptionRequest);

@@ -6,9 +6,4 @@ namespace Adoption.API.Application.Commands.AdoptionRequests;
 
 public sealed record UpdateAdoptionRequestCommand(
     Guid Id,
-    AdoptionStatus Status) : ICommand<AdoptionResponse>;
-
-
-public sealed record UpdateAdoptionRequestBody(
-    AdoptionStatus Status
-);
+    AdoptionStatus Status) : ICommand<AdoptionViewModel>;

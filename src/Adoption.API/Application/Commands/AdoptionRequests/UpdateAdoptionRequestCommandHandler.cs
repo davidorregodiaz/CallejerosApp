@@ -1,17 +1,16 @@
 ﻿using Adoption.API.Abstractions;
 using Adoption.API.Application.Exceptions;
-using Adoption.API.Application.Mappers;
 using Adoption.API.Application.Models;
+using Adoption.API.Application.Services.Mappers;
 using Adoption.Domain.AggregatesModel.AdoptionAggregate;
-using Adoption.Infrastructure.Context;
-using Microsoft.EntityFrameworkCore;
 
 namespace Adoption.API.Application.Commands.AdoptionRequests;
 
-public class UpdateAdoptionRequestCommandHandler(IAdoptionRequestRepository adoptionRepository)
-    : ICommandHandler<UpdateAdoptionRequestCommand, AdoptionResponse>
+public class UpdateAdoptionRequestCommandHandler(IAdoptionRequestRepository adoptionRepository, IAdoptionMapper adoptionMapper)
+    : ICommandHandler<UpdateAdoptionRequestCommand, AdoptionViewModel>
 {
-    public async Task<AdoptionResponse> HandleAsync(UpdateAdoptionRequestCommand command, CancellationToken cancellationToken)
+    public async Task<AdoptionViewModel> HandleAsync(UpdateAdoptionRequestCommand command,
+        CancellationToken cancellationToken)
     {
         var adoptionRequest = await adoptionRepository
             .GetByIdAsync(command.Id, cancellationToken) 
@@ -28,6 +27,6 @@ public class UpdateAdoptionRequestCommandHandler(IAdoptionRequestRepository adop
         
         await adoptionRepository.UnitOfWork().SaveEntitiesAsync(cancellationToken);
         
-        return adoptionRequest.MapToResponse();
+        return await adoptionMapper.MapToResponseAsync(adoptionRequest, cancellationToken);
     }
 }

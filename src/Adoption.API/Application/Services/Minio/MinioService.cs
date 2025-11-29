@@ -150,6 +150,7 @@ public class MinioService : IMinioService
 
     public async Task DeleteBlob(string url, CancellationToken ct)
     {
+        Console.WriteLine("Eliminando el file "+url);
         var args = new RemoveObjectArgs()
             .WithBucket(_options.Value.BucketName)
             .WithObject(url);
