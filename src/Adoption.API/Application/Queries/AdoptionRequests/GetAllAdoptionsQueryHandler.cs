@@ -23,7 +23,9 @@ public class GetAllAdoptionsQueryHandler(
 {
     public async Task<Result<PaginatedResponse<AdoptionViewModel>>> HandleAsync(GetAllAdoptionsQuery query, CancellationToken cancellationToken)
     {
-        var queryable = ctx.AdoptionRequests.AsQueryable();
+        var queryable = ctx.AdoptionRequests
+            .Include(a => a.Appointments)
+            .AsQueryable();
         
         if(!queryable.Any())
             return Result<PaginatedResponse<AdoptionViewModel>>.FromFailure("No adoption requests found");

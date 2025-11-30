@@ -48,6 +48,11 @@ public sealed class AdoptionRequest
         if (Status != AdoptionStatus.Approved)
             throw new AdoptionDomainException("Cannot schedule appointment if adoption is not approved.");
 
+        bool haveCurrentAppoinment = _appointments.Any(x => x.Status == AppointmentStatus.Scheduled);
+        
+        if (haveCurrentAppoinment)
+            throw new AdoptionDomainException("Cannot schedule another appointment if has one scheduled already.");
+            
         _appointments.Add(Appointment.Create(date,notes,location));
     }
 

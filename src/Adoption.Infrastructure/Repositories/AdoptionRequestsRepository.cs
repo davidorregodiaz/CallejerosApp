@@ -11,7 +11,9 @@ public class AdoptionRequestsRepository(AdoptionDbContext ctx) : IAdoptionReques
 {
     public IUnitOfWork UnitOfWork() => ctx;
     public Task<AdoptionRequest?> GetByIdAsync(Guid id, CancellationToken cancellationToken) =>
-        ctx.AdoptionRequests.SingleOrDefaultAsync(x => x.Id == new AdoptionRequestId(id), cancellationToken);
+        ctx.AdoptionRequests
+            .Include(x => x.Appointments)
+            .SingleOrDefaultAsync(x => x.Id == new AdoptionRequestId(id), cancellationToken);
 
     public async Task<IEnumerable<AdoptionRequest>> GetAllByUserId(Guid userId, CancellationToken cancellationToken)
     {

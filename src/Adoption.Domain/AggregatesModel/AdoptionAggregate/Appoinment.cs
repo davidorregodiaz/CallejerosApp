@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Serialization;
+using Adoption.Domain.Exceptions.Adoption;
 using Adoption.Domain.SeedWork;
 
 namespace Adoption.Domain.AggregatesModel.AdoptionAggregate;
@@ -20,7 +21,7 @@ public class Appointment : Entity
         Id = id;
         Date = date;
         Notes = notes;
-        Status = AppointmentStatus.Scheduled;
+        Status = AppointmentStatus.Pending;
         Location = location;
     }
 
@@ -36,9 +37,21 @@ public class Appointment : Entity
     public void Reschedule(DateTime newDate)
     {
         if (Status == AppointmentStatus.Cancelled)
-            throw new InvalidOperationException("Cannot reschedule a cancelled appointment.");
+            throw new AdoptionDomainException("Cannot reschedule a cancelled appointment.");
 
         Date = newDate;
+    }
+
+    public void Schedule(DateTime newDate)
+    {
+        if (Status == AppointmentStatus.Pending)
+        {
+            Date = newDate;
+        }
+        else
+        {
+            throw new AdoptionDomainException("Cannot schedule a cancelled, completed or already scheduled appointment.");
+        }
     }
 
     public void Cancel()
@@ -52,6 +65,7 @@ public record AppointmentId(Guid Value);
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum AppointmentStatus
 {
+    Pending,
     Scheduled,
     Completed,
     Cancelled

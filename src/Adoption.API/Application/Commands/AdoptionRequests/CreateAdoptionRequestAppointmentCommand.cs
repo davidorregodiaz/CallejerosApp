@@ -7,4 +7,4 @@ public record CreateAdoptionRequestAppointmentCommand(
     Guid AdoptionRequestid,
     DateTime Date,
     string Notes,
-    string Location) : ICommand<AppointmentViewModel>;
+    string Location) : ICommand<AdoptionViewModel>;

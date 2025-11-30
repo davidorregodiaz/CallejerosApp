@@ -10,4 +10,5 @@ public record AdoptionViewModel(
     string RequesterName,
     DateTime RequestDate,
     AdoptionStatus Status,
-    string Comments);
+    string Comments,
+    IReadOnlyCollection<AppointmentViewModel> Appointments);

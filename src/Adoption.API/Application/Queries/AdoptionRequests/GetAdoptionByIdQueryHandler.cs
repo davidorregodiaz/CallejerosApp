@@ -14,6 +14,7 @@ public class GetAdoptionByIdQueryHandler(AdoptionDbContext ctx, IAdoptionMapper 
     public async Task<Result<AdoptionViewModel>> HandleAsync(GetAdoptionRequestByIdQuery query, CancellationToken cancellationToken)
     {
         var adoption = await ctx.AdoptionRequests
+            .Include(x => x.Appointments)
             .SingleOrDefaultAsync(x => x.Id == new AdoptionRequestId(query.Id), cancellationToken);
         
         if(adoption is null)
