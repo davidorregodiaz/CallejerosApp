@@ -20,6 +20,9 @@ public class AppointmentEntityConfiguration : IEntityTypeConfiguration<Appointme
                 value => new AppointmentId(value)
             );
 
+        builder.Property(a => a.Status)
+            .HasConversion<string>();
+
         builder.Property(a => a.Date)
             .IsRequired();
 

@@ -29,6 +29,12 @@ public class AdoptionMapper(IAnimalRepository animalRepository, UserManager<Appl
             Comments: adoptionRequest.Comments,
             AnimalName: animal.Name,
             AnimalImage: await minioService.PresignedGetUrl(animal.PrincipalImage, cancellationToken),
-            RequesterName: user.UserName);
+            RequesterName: user.UserName,
+            Appointments: adoptionRequest.Appointments.Select(a => new AppointmentViewModel(
+                AppointmentId: a.Id.Value,
+                Status: a.Status,
+                Date: a.Date,
+                Location: a.Location,
+                Notes: a.Notes)).ToList().AsReadOnly());
     }
 }
