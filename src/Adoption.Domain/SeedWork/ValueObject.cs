@@ -1,6 +1,4 @@
-using System;
-
-namespace Core.SeedWork;
+namespace Adoption.Domain.SeedWork;
 
 public abstract class ValueObject : IEquatable<ValueObject>
 {

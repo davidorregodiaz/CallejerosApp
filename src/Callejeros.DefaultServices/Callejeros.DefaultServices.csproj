@@ -9,6 +9,7 @@
   <ItemGroup>
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
-    <PackageReference Include="Microsoft.Extensions.Hosting"/> 
+    <PackageReference Include="Microsoft.Extensions.Hosting" /> 
   </ItemGroup>
+
 </Project>

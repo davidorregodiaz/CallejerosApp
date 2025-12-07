@@ -1,6 +1,8 @@
+using System.Text.Json;
 using Adoption.Domain.AggregatesModel.AnimalAggregate;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Adoption.Infrastructure.EntityConfigurations;
 
@@ -30,24 +32,22 @@ public class AnimalEntityTypeConfiguration
             .HasColumnName("Age")
             .IsRequired();
 
-        animalConfiguration.OwnsOne(a => a.Breed, breedBuilder =>
-        {
-            breedBuilder.Property(b => b.Value)
-                .HasMaxLength(20);
-        });
+        animalConfiguration.Property(a => a.Breed)
+           .HasColumnName("Breed")
+           .IsRequired()
+           .HasMaxLength(50);
 
-        animalConfiguration.OwnsOne(a => a.AnimalType, typeBuilder =>
-        {
-            typeBuilder.Property(t => t.Value)
-                .HasMaxLength(20);
-        }).Navigation(a => a.AnimalType)
-            .HasField("_type");
+        animalConfiguration.Property(a => a.Species)
+           .HasColumnName("Species")
+           .IsRequired()
+           .HasMaxLength(50);
 
-        animalConfiguration.Property(a => a.ImagesPath)
+        animalConfiguration.Property(a => a.AdditionalImagesUrl)
             .HasConversion(
-                imagePath => string.Join(";", imagePath),   // de List<string> a string para DB
-                imageString => imageString.Split(';', StringSplitOptions.None).ToList() // de string a List<string>
-            );
+                imagePath => (imagePath == null || imagePath.Count == 0) ? null : string.Join(";", imagePath), 
+                imageString => string.IsNullOrEmpty(imageString) ? new List<string>() : imageString.Split(';', StringSplitOptions.None).ToList() 
+            )
+            .HasField("_aditionalImages"); ;
 
         animalConfiguration.Property(a => a.Description)
             .HasColumnName("Description")
@@ -60,6 +60,55 @@ public class AnimalEntityTypeConfiguration
                 value => new OwnerId(value)
             )
             .IsRequired();
-    }
 
+        var jsonOptions = new JsonSerializerOptions(); 
+
+        animalConfiguration
+            .Property(a => a.AdoptionRequirements)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v.ToList(), jsonOptions),
+                v => JsonSerializer.Deserialize<List<string>>(v, jsonOptions) ?? new List<string>())
+            .HasField("_adoptionRequirements");
+
+        animalConfiguration.Property(a => a.Sex)
+            .HasConversion<string>();
+        
+        animalConfiguration.Property(a => a.Status)
+            .HasConversion<string>();
+        
+        animalConfiguration.Property(a => a.Size)
+            .HasConversion<string>();
+        
+        animalConfiguration.Property(a => a.Personality)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
+                v => JsonSerializer.Deserialize<List<Personality>>(v, (JsonSerializerOptions)null)
+            )
+            .HasColumnName("Personality")
+            .HasField("_personality"); // <- Backing field
+        
+        animalConfiguration.Property(a => a.Compatibility)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
+                v => JsonSerializer.Deserialize<List<Compatibility>>(v, (JsonSerializerOptions)null)
+            )
+            .HasColumnName("Compatibility")
+            .HasField("_compatibility"); // <- Backing field
+
+        animalConfiguration.OwnsOne(a => a.MedicalRecord, mr =>
+        {
+            mr.ToTable("AnimalMedicalRecords");
+
+            mr.Property(x => x.HealthState)
+                .HasColumnName("HealthState");
+            mr.Property(x => x.Vaccine)
+                .HasColumnName("Vaccine");
+            mr.Property(x => x.IsDewormed)
+                .HasColumnName("IsDewormed");
+            mr.Property(x => x.IsStirilized)
+                .HasColumnName("IsStirilized");
+            
+            mr.WithOwner().HasForeignKey("AnimalId");
+        });
+    }
 }

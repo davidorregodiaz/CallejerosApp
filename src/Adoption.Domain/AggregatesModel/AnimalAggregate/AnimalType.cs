@@ -1,5 +1,5 @@
 using Adoption.Domain.Exceptions.Animal;
-using Core.SeedWork;
+using Adoption.Domain.SeedWork;
 
 namespace Adoption.Domain.AggregatesModel.AnimalAggregate;
 

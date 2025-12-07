@@ -2,7 +2,7 @@
 
 namespace Adoption.Domain.SeedWork;
 
-public interface IDomainEventHandler<T> where T : IDomainEvent
+public interface IDomainEventHandler<in TEvent> where TEvent : IDomainEvent
 {
-    Task<Result<T>> Handle(T domainEvent, CancellationToken cancellationToken);
+    Task HandleAsync(TEvent domainEvent, CancellationToken cancellationToken);
 }

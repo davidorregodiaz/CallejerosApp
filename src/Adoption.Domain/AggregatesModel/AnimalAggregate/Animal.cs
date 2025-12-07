@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Adoption.Domain.SeedWork;
 using Adoption.Domain.Events.Animal;
 using Adoption.Domain.Exceptions.Animal;
@@ -7,58 +8,95 @@ namespace Adoption.Domain.AggregatesModel.AnimalAggregate;
 public sealed class Animal
     : Entity, IAggregateRoot
 {
-    private Animal() : base(Guid.Empty) //EF
-    {
-        _imagesPath = new List<string>();
-    }
+    private Animal() : base(Guid.Empty) { } //EF
 
-    
-    private Animal(AnimalId id, string name, int age, string description, OwnerId ownerId, Breed breed, AnimalType type, List<string> imagesPath)
+    private Animal(AnimalId id, string name, int age, string description, OwnerId ownerId, string breed, string species,
+        MedicalRecord medicalRecord, List<string>? imagesPath, string principalImage, List<string> adoptionRequirements,
+        Sex sex, Size size, List<Compatibility> compatibility, List<Personality> personality)
         : base(id.Value)
     {
         Id = id;
         Name = name;
+        NormalizedName = name.Trim().ToLower();
         Age = age;
         Description = description;
         OwnerId = ownerId;
-        _breed = breed;
-        _type = type;
-        _imagesPath = imagesPath ?? new List<string>();
+        Breed = breed;
+        NormalizedBreed = breed.Trim().ToLower();
+        NormalizedSpecies = species.Trim().ToLower();
+        Species = species;
+        _aditionalImages = imagesPath ?? new List<string>();
+        PrincipalImage = principalImage;
+        MedicalRecord = medicalRecord;
+        Sex = sex;
+        Size = size;
+        _compatibility = compatibility;
+        _personality =  personality;
+        Status = AnimalStatus.Adoption;
+        SetAdoptionRequirements(adoptionRequirements);
     }
 
     public new AnimalId Id { get; private set; }
     public string Name { get; private set; }
+    public Sex Sex { get; private set; }
+    public string NormalizedName { get; private set; }
+    public MedicalRecord MedicalRecord { get; private set; }
     public int Age { get; private set; }
-    private Breed _breed;
-    public Breed Breed => _breed;
-    private AnimalType _type;
-    public AnimalType AnimalType => _type;
+    public AnimalStatus Status { get; private set; }
+    public string Breed { get; private set; }
+    public string NormalizedBreed { get; private set; }
+    public string Species { get; private set; }
+    public string NormalizedSpecies { get; private set; }
     public string Description { get; private set; }
     public OwnerId OwnerId { get; private set; }
-    private List<string> _imagesPath;
-    public IReadOnlyCollection<string> ImagesPath => _imagesPath.AsReadOnly<string>();
-    
+    private List<string>? _aditionalImages;
+    public IReadOnlyCollection<string>? AdditionalImagesUrl => _aditionalImages?.AsReadOnly<string>();
+    public string PrincipalImage { get; private set; } = null!;
+    private readonly List<string> _adoptionRequirements = new List<string>();
+    public IReadOnlyCollection<string> AdoptionRequirements => _adoptionRequirements.AsReadOnly();
+    public Size Size { get; private set; }
+    private List<Compatibility> _compatibility = new List<Compatibility>();
+    public IReadOnlyCollection<Compatibility> Compatibility => _compatibility.AsReadOnly();
+    private List<Personality> _personality = new List<Personality>();
+    public IReadOnlyCollection<Personality> Personality => _personality.AsReadOnly();
 
-    public static Animal Create(string name, int age, string description, string ownerId, string? breed, string? type, List<string> imagesPath)
+    public static Animal Create(string name,
+        int age,
+        string description,
+        Guid ownerId,
+        string breed,
+        string species,
+        Sex animalSex,
+        List<string>? aditionalImages,
+        string principalImage,
+        string vaccine,
+        bool isStirilized,
+        bool isDewormed,
+        string healthState,
+        List<string> adoptionRequirements,
+        Size size,
+        List<Compatibility> compatibility,
+        List<Personality> personality)
     {
-        if (!Guid.TryParse(ownerId, out var ownerIdGuid))
-            throw new AnimalDomainException($"Invalid {nameof(ownerId)} format.");
-
-        if (age < 0)
+        if (age <= 0)
             throw new AnimalDomainException($"Invalid {nameof(age)}.");
 
-        if (string.IsNullOrWhiteSpace(description))
-            throw new AnimalDomainException($"Invalid {nameof(description)}.");
-
         var animal = new Animal(
-            new AnimalId(Guid.NewGuid()),
-            name,
-            age,
-            description,
-            new OwnerId(ownerIdGuid),
-            Breed.Create(breed),
-            AnimalType.Create(type),
-            imagesPath ?? new List<string>()
+            id: new AnimalId(Guid.NewGuid()),
+            name: name,
+            age: age,
+            description: description,
+            ownerId: new OwnerId(ownerId),
+            breed: breed,
+            species: species,
+            imagesPath: aditionalImages,
+            principalImage: principalImage,
+            sex: animalSex,
+            medicalRecord: MedicalRecord.Create(vaccine, isStirilized, isDewormed, healthState),
+            adoptionRequirements: adoptionRequirements,
+            size: size,
+            compatibility: compatibility,
+            personality: personality
         );
 
         animal.AddDomainEvent(new AnimalCreatedDomainEvent(animal.Id.Value));
@@ -66,14 +104,117 @@ public sealed class Animal
         return animal;
     }
 
-    public bool BelongsTo(string userId)
+    public Animal Update(string? name, int? age, string? description, string? breed, string? species,
+        List<string>? aditionalImages, string? principalImage)
     {
-        if (!Guid.TryParse(userId, out var userIdGuid))
-            throw new AnimalDomainException($"Invalid {nameof(userId)} format.");
-        return OwnerId.Value == userIdGuid;
+        if (age <= 0)
+            throw new AnimalDomainException($"Invalid {nameof(age)}.");
+
+        if (!string.IsNullOrEmpty(name))
+        {
+            Name = name;
+            NormalizedName = name.Trim().ToLower();
+        }
+
+        if (age.HasValue && age.Value > 0)
+            Age = age.Value;
+
+        if (!string.IsNullOrEmpty(description))
+            Description = description;
+
+        if (!string.IsNullOrEmpty(breed))
+            Breed = breed;
+
+        if (!string.IsNullOrEmpty(species))
+            Species = species;
+
+        if (aditionalImages != null)
+            _aditionalImages = aditionalImages;
+
+        if (!string.IsNullOrEmpty(principalImage))
+            PrincipalImage = principalImage;
+
+        return this;
+    }
+
+    private void SetAdoptionRequirements(List<string> requirements)
+    {
+        foreach (var req in requirements)
+        {
+            if (!string.IsNullOrWhiteSpace(req))
+                _adoptionRequirements.Add(req.Trim());
+        }
+    }
+
+    void MarkAnimalAsAdopted()
+    {
+        Status = AnimalStatus.Adopted;
+    }
+
+    void AnimalEnteredAdoptionProcess()
+    {
+        Status = AnimalStatus.InProcess;
+    }
+
+    void MarkAnimalAsInAdoption()
+    {
+        Status = AnimalStatus.Adoption;
+    }
+
+    void HideAnimal()
+    {
+        Status = AnimalStatus.Hide;
+    }
+
+    void AnimalRequestedForAdoptionProcess()
+    {
+        Status = AnimalStatus.Adoption;
     }
 }
 
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum Sex
+{
+    Female,
+    Male
+}
+
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum AnimalStatus
+{
+    Adoption,
+    Adopted,
+    InProcess,
+    Hide,
+    Requested
+}
+
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum Size
+{
+    Small,
+    Medium,
+    Big
+}
+
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum Compatibility
+{
+    Childs,
+    Dogs,
+    Cats
+}
+
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum Personality
+{
+    Playful,
+    Calm,
+    Shy,
+    Energetic,
+    Warm
+}
 
 public record AnimalId(Guid Value);
+
 public record OwnerId(Guid Value);

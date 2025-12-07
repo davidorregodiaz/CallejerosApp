@@ -42,5 +42,9 @@ public class AdoptionRequestEntityTypeConfiguration
         adoptionRequestConfiguration.Property(ar => ar.Comments)
             .HasColumnName("Comments")
             .HasMaxLength(500);
+        
+        adoptionRequestConfiguration.Metadata
+            .FindNavigation(nameof(AdoptionRequest.Appointments))
+            .SetPropertyAccessMode(PropertyAccessMode.Field);
     }
 }

@@ -22,6 +22,7 @@ indent_size = 2
 [*.{cs,csx,vb,vbx}]
 indent_size = 4
 insert_final_newline = true
+csharp_new_line_before_open_brace = all
 charset = utf-8-bom
 ###############################
 # .NET Coding Conventions     #

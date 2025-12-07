@@ -1,4 +1,3 @@
-
 using Adoption.Domain.SeedWork;
 using Adoption.Domain.Events.Adoption;
 using Adoption.Domain.Exceptions.Adoption;
@@ -8,7 +7,7 @@ namespace Adoption.Domain.AggregatesModel.AdoptionAggregate;
 public sealed class AdoptionRequest
     : Entity, IAggregateRoot
 {
-    private AdoptionRequest(AdoptionRequestId id,Guid animalId, Guid requesterId, string? comments) : base(id.Value)
+    private AdoptionRequest(AdoptionRequestId id,Guid animalId, Guid requesterId, string comments) : base(id.Value)
     {
         Id = id;
         AnimalId = animalId;
@@ -16,45 +15,54 @@ public sealed class AdoptionRequest
         Comments = comments;
         Status = AdoptionStatus.Pending;
         RequestDate = DateTime.UtcNow;
+        
+        AddDomainEvent(new AdoptionRequestCreatedDomainEvent(RequesterId, AnimalId, RequestDate));
     }
     public new AdoptionRequestId Id { get; private set; }
     public Guid AnimalId { get; private set; }
     public Guid RequesterId { get; private set; }
     public DateTime RequestDate { get; private set; }
     public AdoptionStatus Status { get; private set; }
-    public string? Comments { get; private set; }
-
-    public static AdoptionRequest Create(string animalId, string requesterId, string? comments)
-    {
-        if (!Guid.TryParse(animalId, out var animalIdGuid))
-            throw new AdoptionDomainException($"Invalid {nameof(animalId)} format.");
-
-        if (!Guid.TryParse(requesterId, out var requesterIdGuid))
-            throw new AdoptionDomainException($"Invalid {nameof(requesterId)} format.");
-
-        var adoptionRequest = new AdoptionRequest(new AdoptionRequestId(Guid.NewGuid()), animalIdGuid, requesterIdGuid, comments);
-
-        adoptionRequest.AddDomainEvent(new AdoptionRequestCreatedDomainEvent(adoptionRequest.Id.Value));
-
-        return adoptionRequest;
-    }
-
+    public string Comments { get; private set; }
+    private List<Appointment> _appointments = new();
+    public IReadOnlyCollection<Appointment> Appointments => _appointments.AsReadOnly();
+    public static AdoptionRequest Create(Guid animalId, Guid requesterId, string comments) => 
+        new AdoptionRequest(new AdoptionRequestId(Guid.NewGuid()), animalId, requesterId, comments);
     public void Approve()
     {
-        AddDomainEvent(new AdoptionApprovedDomainEvent());
         Status = AdoptionStatus.Approved;
+        AddDomainEvent(new AdoptionStatusChangeDomainEvent(Status, RequesterId, Id.Value));
     }
-
     public void Reject()
     {
-        AddDomainEvent(new AdoptionRejectedDomainEvent());
         Status = AdoptionStatus.Rejected;
+        AddDomainEvent(new AdoptionStatusChangeDomainEvent(Status, RequesterId, Id.Value));
     }
-
     public void Complete()
     {
-        AddDomainEvent(new AdoptionCompletedDomainEvent());
         Status = AdoptionStatus.Completed;
+        AddDomainEvent(new AdoptionStatusChangeDomainEvent(Status, RequesterId, Id.Value));
+    }
+    public void AddAppointment(DateTime date, string notes, string location)
+    {
+        if (Status != AdoptionStatus.Approved)
+            throw new AdoptionDomainException("Cannot schedule appointment if adoption is not approved.");
+
+        bool haveCurrentAppoinment = _appointments.Any(x => x.Status == AppointmentStatus.Scheduled);
+        
+        if (haveCurrentAppoinment)
+            throw new AdoptionDomainException("Cannot schedule another appointment if has one scheduled already.");
+            
+        _appointments.Add(Appointment.Create(date,notes,location));
+    }
+
+    public void CancelAppointment(Guid appointmentId)
+    {
+        var appointment = _appointments.SingleOrDefault(x => x.Id == new AppointmentId(appointmentId));
+        if (appointment == null)
+            throw new AdoptionDomainException(nameof(Appointment));
+
+        appointment.Cancel();
     }
 }
 public record AdoptionRequestId(Guid Value);

@@ -28,4 +28,8 @@
       <ProjectReference Include="..\Adoption.Domain\Adoption.Domain.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Migrations\" />
+    </ItemGroup>
+
 </Project>

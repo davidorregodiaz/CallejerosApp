@@ -1,15 +1,18 @@
 
 using Adoption.Domain.SeedWork;
+using Shared;
+using Shared.Utilities;
 
 namespace Adoption.Domain.AggregatesModel.AdoptionAggregate;
 
-public interface IAdoptionRepository : IRepository<AdoptionRequest>     
+public interface IAdoptionRequestRepository : IRepository<AdoptionRequest>
 {
-    Task<AdoptionRequest?> GetByIdAsync(Guid id);
-    Task<IEnumerable<AdoptionRequest>> GetByRequesterIdAsync(Guid requesterId);
-    Task<IEnumerable<AdoptionRequest>> GetByAnimalIdAsync(Guid animalId);
-    Task AddAsync(AdoptionRequest adoptionRequest);
-    Task UpdateAsync(AdoptionRequest adoptionRequest);
-    Task DeleteAsync(Guid id);
+    IUnitOfWork UnitOfWork();
+    Task<AdoptionRequest?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
+    Task<IEnumerable<AdoptionRequest>> GetAllByUserId(Guid userId, CancellationToken cancellationToken);
+    IQueryable<AdoptionRequest> GetByAnimalIdAsync(Guid animalId, CancellationToken cancellationToken);
+    void Add(AdoptionRequest adoptionRequest);
+    void Delete(AdoptionRequest adoptionRequest);
+    Task<bool> HaveAssociatedRequestsAsync(Guid userId, CancellationToken cancellationToken);
 }
 
