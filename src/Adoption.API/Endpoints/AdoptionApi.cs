@@ -1,14 +1,11 @@
 ﻿using Adoption.API.Abstractions;
 using Adoption.API.Application.Commands.AdoptionRequests;
-using Adoption.API.Application.Exceptions;
 using Adoption.API.Application.Models;
 using Adoption.API.Application.Queries;
 using Adoption.API.Application.Queries.AdoptionRequests;
 using Adoption.API.Extensions;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using Org.BouncyCastle.Asn1.Ocsp;
-using Shared.Utilities;
 
 namespace Adoption.API.Endpoints;
 

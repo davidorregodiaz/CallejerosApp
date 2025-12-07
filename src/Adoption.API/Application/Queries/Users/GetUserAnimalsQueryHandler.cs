@@ -22,8 +22,6 @@ public class GetUserAnimalsQueryHandler(IAnimalRepository animalRepository, IUse
         
         var animals = await animalRepository.GetAnimalsByUserId(query.UserId, cancellationToken);
 
-        animals = animals.ToList();
-        
         if(!animals.Any())
             return Result<PaginatedResponse<AnimalViewModel>>.FromFailure("No adoptions requested yet");
         
@@ -38,9 +36,13 @@ public class GetUserAnimalsQueryHandler(IAnimalRepository animalRepository, IUse
         
         int count = animals.Count();
 
-        var responseData = await Task.WhenAll(
-            animals.Select(async animal => await animalMapper.MapToResponse(animal,cancellationToken)));
+        var responseData = new List<AnimalViewModel>();
 
+        foreach (var animal in animals)
+        {
+            responseData.Add(await animalMapper.MapToResponse(animal, cancellationToken));
+        }
+ 
         var paginatedResponse = new PaginatedResponse<AnimalViewModel>
         {
             Data = responseData, 

@@ -13,7 +13,7 @@ public class AnimalRepository(AdoptionDbContext ctx) : IAnimalRepository
             .SingleOrDefaultAsync(x => x.Id == new AnimalId(id), cancellationToken);
     public void Add(Animal animal) => ctx.Add(animal);
     public void Delete(Animal animal) =>  ctx.Remove(animal);
-    public async Task<IEnumerable<Animal>> GetAnimalsByUserId(Guid id, CancellationToken cancellationToken) =>
+    public async Task<List<Animal>> GetAnimalsByUserId(Guid id, CancellationToken cancellationToken) =>
         await ctx.Animals.Where(x => x.OwnerId == new OwnerId(id)).ToListAsync(cancellationToken);
 
 }
