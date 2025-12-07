@@ -42,7 +42,7 @@ public class GetAllAdoptionsQueryHandler(
         //Filtrado por ID de Usuario y su Rol
         if (query.UserId.HasValue)
         {
-            var user = await userManager.FindByIdAsync(query.UserId.ToString());
+            var user = await userManager.FindByIdAsync(query.UserId.ToString()!);
             
             if(user == null)
                 return Result<PaginatedResponse<AdoptionViewModel>>.FromFailure("User not found");
@@ -51,7 +51,7 @@ public class GetAllAdoptionsQueryHandler(
             {
                 var animals = await animalRepository
                     .GetAnimalsByUserId(Guid.TryParse(user.Id, out var userId) ? userId : Guid.Empty, cancellationToken);
-                
+
                 var animalsIds = animals.Select(a => a.Id.Value).ToList();
 
                 queryable = queryable.Where(adoption => animalsIds.Contains(adoption.AnimalId));
@@ -74,9 +74,16 @@ public class GetAllAdoptionsQueryHandler(
         adoptions = adoptions.OrderByProperty(query.SortBy, query.IsDescending)
             .PaginatePage(page, pageSize);
         
+        var responseData = new List<AdoptionViewModel>();
+
+        foreach (var adoption in adoptions)
+        {
+            responseData.Add(await adoptionMapper.MapToResponseAsync(adoption, cancellationToken));
+        }
+        
         var paginatedResponse = new PaginatedResponse<AdoptionViewModel>
         {
-            Data = await Task.WhenAll(adoptions.Select(async adoption => await adoptionMapper.MapToResponseAsync(adoption, cancellationToken))),
+            Data = responseData,
             TotalCount = totalCount,
             Page = query.Page,
             PageSize = query.PageSize,

@@ -23,8 +23,8 @@ using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Identity;
 using Quartz;
 
-namespace Adoption.API;
 
+namespace Adoption.API;
 public static class DependencyInjection
 {
     public static void AddApplication(this WebApplicationBuilder builder)
@@ -159,7 +159,7 @@ public static class DependencyInjection
             });
         });
     }
-    public static IServiceCollection AddIdentity(this WebApplicationBuilder builder)
+    public static void AddIdentity(this WebApplicationBuilder builder)
     {
         var services = builder.Services;
 
@@ -178,7 +178,5 @@ public static class DependencyInjection
 
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<TokenService>();
-
-        return services;
     }
 }
