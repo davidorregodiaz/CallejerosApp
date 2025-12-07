@@ -5,34 +5,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Adoption.Infrastructure.Repositories;
 
-public class AnimalRepository : IAnimalRepository
+public class AnimalRepository(AdoptionDbContext ctx) : IAnimalRepository
 {
-    public AnimalRepository(AdoptionDbContext ctx)
-    {
-        _ctx = ctx;
-    }
-    private readonly AdoptionDbContext _ctx;
-    public IUnitOfWork UnitOfWork() => _ctx;
-    public Animal Add(Animal animal)
-    {
-        return _ctx.Animals
-                .Add(animal)
-                .Entity;
-    }
-    public async Task<Animal?> GetByIdAsync(Guid id)
-    {
-        var animal = await _ctx.Animals
-                        .Where(a => a.Id.Value == id)
-                        .SingleOrDefaultAsync();
-        return animal;
-    }
-
-    public Animal Update(Animal animal)
-    {
-        return _ctx.Animals
-                .Update(animal)
-                .Entity;
-    }
-
+    public IUnitOfWork UnitOfWork() => ctx;
+    public async Task<Animal?> GetAnimalByIdAsync(Guid id,  CancellationToken cancellationToken) =>
+        await ctx.Animals
+            .SingleOrDefaultAsync(x => x.Id == new AnimalId(id), cancellationToken);
+    public void Add(Animal animal) => ctx.Add(animal);
+    public void Delete(Animal animal) =>  ctx.Remove(animal);
+    public async Task<List<Animal>> GetAnimalsByUserId(Guid id, CancellationToken cancellationToken) =>
+        await ctx.Animals.Where(x => x.OwnerId == new OwnerId(id)).ToListAsync(cancellationToken);
 
 }
