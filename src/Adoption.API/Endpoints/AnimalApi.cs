@@ -111,9 +111,6 @@ public static class AnimalApi
 
         if (!result.IsSuccessful(out var response))
             return TypedResults.NoContent();
-
-        if (result.IsSuccessful(out var animals))
-            return  TypedResults.Ok(animals);
         
         return TypedResults.Ok(response);
     }

@@ -18,8 +18,8 @@ public static class UserEndpoints
     public static IEndpointRouteBuilder MapUserEndpoints(this IEndpointRouteBuilder app)
     {
         var usersApi = app
-            .MapGroup("/users")
-            .WithTags("Users")
+            .MapGroup("/user")
+            .WithTags("User")
             .RequireAuthorization("UsersManagementPolicy")
             .WithOpenApi();
 
@@ -38,7 +38,7 @@ public static class UserEndpoints
             .WithSummary("Gets the adoptions made or requested by an user")
             .Produces<Ok<PaginatedResponse<AdoptionViewModel>>>()
             .Produces<NoContent>();
-        
+
         usersApi.MapGet("/animals", GetUserAnimals)
             .WithSummary("Gets the animals associated to an user")
             .Produces<Ok<PaginatedResponse<AnimalViewModel>>>()
@@ -48,23 +48,28 @@ public static class UserEndpoints
         return usersApi;
     }
 
-    private static async Task<Results<Ok<PaginatedResponse<AdoptionViewModel>>,NoContent>> GetUserAdoptions(
+    private static async Task<Results<Ok<PaginatedResponse<AdoptionViewModel>>,NoContent, ForbidHttpResult>> GetUserAdoptions(
         [AsParameters] GetUserAdoptionsRequest request,
         HttpContext context,
         IQueryHandler<GetUserAdoptionsQuery,PaginatedResponse<AdoptionViewModel>> handler,
         CancellationToken ct = default)
     {
         var userIdFromContext = context.GetUserIdFromContext();
+
+        if (userIdFromContext is null)
+        {
+            return TypedResults.Forbid();
+        }
         
         var query = new GetUserAdoptionsQuery(
-            userIdFromContext ?? Guid.Empty,
+            (Guid)userIdFromContext,
             request.Page,
             request.PageSize);
         
         var result = await handler.HandleAsync(query, ct);
 
         if (!result.IsSuccessful(out var response))
-            return TypedResults.NoContent();
+                return TypedResults.NoContent();
         
         return TypedResults.Ok(response);
     }

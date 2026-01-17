@@ -35,6 +35,8 @@ public class AdoptionMapper(IAnimalRepository animalRepository, UserManager<Appl
                 Status: a.Status,
                 Date: a.Date,
                 Location: a.Location,
-                Notes: a.Notes)).ToList().AsReadOnly());
+                Notes: a.Notes,
+                DateProposed: a.DateProposed,
+                RescheduleMessage: a.RescheduleMessage)).ToList().AsReadOnly());
     }
 }

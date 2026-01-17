@@ -4,13 +4,13 @@ using Adoption.API.Application.Models;
 using Adoption.API.Application.Services.Mappers;
 using Adoption.Domain.AggregatesModel.AdoptionAggregate;
 
-namespace Adoption.API.Application.Commands.AdoptionRequests;
+namespace Adoption.API.Application.Commands.Appointments;
 
-public class CreateAdoptionRequestAppointmentCommandHandler(
+public class CreateAppointmentCommandHandler(
     IAdoptionRequestRepository adoptionRepository,
-    IAdoptionMapper adoptionMapper) : ICommandHandler<CreateAdoptionRequestAppointmentCommand, AdoptionViewModel>
+    IAdoptionMapper adoptionMapper) : ICommandHandler<CreateAppointmentCommand, AppointmentViewModel>
 {
-    public async Task<AdoptionViewModel> HandleAsync(CreateAdoptionRequestAppointmentCommand command,
+    public async Task<AppointmentViewModel> HandleAsync(CreateAppointmentCommand command,
         CancellationToken cancellationToken)
     {
         var adoption = await adoptionRepository.GetByIdAsync(command.AdoptionRequestid, cancellationToken);
@@ -18,10 +18,10 @@ public class CreateAdoptionRequestAppointmentCommandHandler(
         if (adoption is null)
             throw new AdoptionRequestNotFoundException($"Adoption with id {command.AdoptionRequestid} not found");
         
-        adoption.AddAppointment(date: command.Date, notes: command.Notes, location: command.Location);
+        var appointment = adoption.AddAppointment(date: command.Date, notes: command.Notes, location: command.Location);
 
         await adoptionRepository.UnitOfWork().SaveChangesAsync(cancellationToken);
 
-        return await adoptionMapper.MapToResponseAsync(adoption, cancellationToken);
+        return appointment.ToResponse();
     }
 }
