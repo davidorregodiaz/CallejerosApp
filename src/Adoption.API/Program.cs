@@ -44,4 +44,4 @@ app.MapGroup("/api")
 
 app.MapGet("/hello", () => "Hello World!");
 
-app.Run();
+await app.RunAsync("http://0.0.0.0:5239");

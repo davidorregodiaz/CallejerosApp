@@ -68,6 +68,12 @@ public static class AuthenticationExtensions
             {
                 policy.RequireRole("SuperAdmin", "Admin", "Owner");
             });
+            
+            options.AddPolicy("OwnerRequesterPolicy", policy =>
+            {
+                policy.RequireRole("Requester", "Owner");
+            });
+
         });
 
         return services;
