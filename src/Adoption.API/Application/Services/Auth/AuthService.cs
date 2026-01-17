@@ -137,7 +137,7 @@ public class AuthService(
                 AccessToken = await tokenService.GenerateAccessToken(user),
                 RefreshToken = newRefreshToken,
                 User = userResponse,
-                ExpiresIn = Convert.ToInt32(configuration["Jwt:ExpireMinutes"])
+                ExpiresIn = 900
             });
         }
 

@@ -25,10 +25,12 @@ public class AuthController(IAuthService authService, ILogger<AuthController> lo
             return Results.Ok(new TokenViewModel
             {
                 Token = token.AccessToken,
-                ExpirationMinutes = token.ExpiresIn,
-                User = token.User
+                ExpiresIn = token.ExpiresIn,
+                User = token.User,
+                RefreshToken = token.RefreshToken
             });
         }
+
         return Results.BadRequest(new { error = result.Message });
     }
 
@@ -46,37 +48,41 @@ public class AuthController(IAuthService authService, ILogger<AuthController> lo
             return Results.Ok(new TokenViewModel
             {
                 Token = token.AccessToken,
-                ExpirationMinutes = token.ExpiresIn,
-                User = token.User
+                ExpiresIn = token.ExpiresIn,
+                User = token.User,
+                RefreshToken = token.RefreshToken
             });
         }
+
         return Results.BadRequest(new { error = result.Message });
     }
 
+    public record RefreshTokenRequest(string RefreshToken);
+
     [AllowAnonymous]
-    [HttpGet("refresh-token")]
+    [HttpPost("refresh-token")]
     [ProducesResponseType<TokenViewModel>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [EndpointSummary("Refresh the access token and refresh token")]
     public async Task<IResult> RefreshToken()
     {
-        if (!Request.Cookies.TryGetValue("refresh_token", out var refreshToken))
-            return Results.BadRequest("Refresh token missing");
-
+        var refreshToken = Request.Cookies["refresh_token"];
+        
         if (string.IsNullOrEmpty(refreshToken))
             return Results.BadRequest("Refresh token missing");
 
-        var result = await authService.RefreshToken(refreshToken!); 
+        var result = await authService.RefreshToken(refreshToken);
 
         if (!result.IsSuccessful(out var tokenDto))
-            return Results.BadRequest(result.Message);
+            return Results.Unauthorized();
         
         SetRefreshTokenCookie(tokenDto.RefreshToken);
         
-        return Results.Ok(new TokenViewModel
+        return Results.Ok(new
         {
-            Token = tokenDto.AccessToken,
-            ExpirationMinutes = tokenDto.ExpiresIn,
+            AccessToken = tokenDto.AccessToken,
+            RefreshToken = tokenDto.RefreshToken,
+            ExpiresIn = tokenDto.ExpiresIn,
             User = tokenDto.User
         });
     }
@@ -105,12 +111,12 @@ public class AuthController(IAuthService authService, ILogger<AuthController> lo
     public void ChekUserClaims()
     {
         var roles = HttpContext.User.Claims
-                        .Where(c => c.Type == ClaimTypes.Role)
-                        .Select(c => c.Value);
+            .Where(c => c.Type == ClaimTypes.Role)
+            .Select(c => c.Value);
 
         logger.LogInformation(string.Join(",", roles));
     }
-    
+
     private void SetRefreshTokenCookie(string token)
     {
         var cookieOptions = new CookieOptions

@@ -23,12 +23,6 @@ public static class AdoptionApi
             .ProducesValidationProblem()
             .RequireAuthorization("RequesterPolicy");
         
-        adoptionApi.MapPost("/appointment", CreateAdoptionRequestAppointmentAsync)
-            .Produces<Ok<AdoptionViewModel>>()
-            .ProducesProblem(statusCode: StatusCodes.Status500InternalServerError)
-            .ProducesValidationProblem()
-            .RequireAuthorization("OwnerPolicy");
-
         adoptionApi.MapGet("/{Id:guid}", GetAdoptionRequestByIdAsync)
             .WithName("GetAdoptionRequestById")
             .WithSummary("Gets an adoption request by id")
@@ -59,20 +53,7 @@ public static class AdoptionApi
         return app;
     }
 
-    private static async Task<Results<Ok<AdoptionViewModel>, ProblemHttpResult>> CreateAdoptionRequestAppointmentAsync(
-        CreateAdoptionRequestAppointmentRequest request,
-        ICommandHandler<CreateAdoptionRequestAppointmentCommand, AdoptionViewModel> handler,
-        CancellationToken cancellationToken = default)
-    {
-        var command = new CreateAdoptionRequestAppointmentCommand(
-            AdoptionRequestid: request.AdoptionRequestId,
-            Date: request.Date,
-            Notes: request.Notes,
-            Location: request.Location);
-        
-        var response = await handler.HandleAsync(command,cancellationToken);
-        return TypedResults.Ok(response);
-    }
+    
 
     private static async Task<Results<Ok<AdoptionViewModel>, ProblemHttpResult>> UpdateAdoptionRequestAsync(
         [FromRoute] Guid id,

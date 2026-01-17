@@ -12,6 +12,8 @@ public class Appointment : Entity
     public AppointmentStatus Status { get; private set; }
     public string Location { get; private set; }
     public AdoptionRequestId AdoptionRequestId { get; private set; }
+    public DateTime? DateProposed  { get; private set; }
+    public string? RescheduleMessage { get; private set; }
     private Appointment() : base(Guid.Empty)//EF
     {
         Id = new AppointmentId(Guid.Empty);
@@ -34,19 +36,21 @@ public class Appointment : Entity
             location);
     }
 
-    public void Reschedule(DateTime newDate)
+    public void Reschedule(DateTime newDate, string?  rescheduleMessage)
     {
-        if (Status == AppointmentStatus.Cancelled)
+        if (Status == AppointmentStatus.Cancelled || Status == AppointmentStatus.Completed)
             throw new AdoptionDomainException("Cannot reschedule a cancelled appointment.");
 
-        Date = newDate;
+        DateProposed = newDate;
+        RescheduleMessage = rescheduleMessage ?? "";
     }
 
     public void Schedule(DateTime newDate)
     {
-        if (Status == AppointmentStatus.Pending)
+        if (Status == AppointmentStatus.Pending || Status == AppointmentStatus.RescheduleRequested)
         {
             Date = newDate;
+            Status = AppointmentStatus.Scheduled;
         }
         else
         {
@@ -67,6 +71,7 @@ public enum AppointmentStatus
 {
     Pending,
     Scheduled,
+    RescheduleRequested,
     Completed,
     Cancelled
 }

@@ -43,7 +43,7 @@ public sealed class AdoptionRequest
         Status = AdoptionStatus.Completed;
         AddDomainEvent(new AdoptionStatusChangeDomainEvent(Status, RequesterId, Id.Value));
     }
-    public void AddAppointment(DateTime date, string notes, string location)
+    public Appointment AddAppointment(DateTime date, string notes, string location)
     {
         if (Status != AdoptionStatus.Approved)
             throw new AdoptionDomainException("Cannot schedule appointment if adoption is not approved.");
@@ -52,14 +52,26 @@ public sealed class AdoptionRequest
         
         if (haveCurrentAppoinment)
             throw new AdoptionDomainException("Cannot schedule another appointment if has one scheduled already.");
-            
-        _appointments.Add(Appointment.Create(date,notes,location));
+
+        var appointment = Appointment.Create(date, notes, location);
+        _appointments.Add(appointment);
+        return appointment;
     }
 
+    public void RescheduleAppointment(Guid appointmentId, DateTime dateProposed, string? rescheduleMessage)
+    {
+        var appointment = _appointments.SingleOrDefault(appointment => appointment.Id.Value == appointmentId);
+        
+        if(appointment is null)
+            throw new AdoptionDomainException("Cannot reschedule an appointment if the appointment dont exists.");
+        
+        appointment.Reschedule(dateProposed, rescheduleMessage);
+    }
     public void CancelAppointment(Guid appointmentId)
     {
         var appointment = _appointments.SingleOrDefault(x => x.Id == new AppointmentId(appointmentId));
-        if (appointment == null)
+        
+        if (appointment is null)
             throw new AdoptionDomainException(nameof(Appointment));
 
         appointment.Cancel();

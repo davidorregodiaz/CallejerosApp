@@ -7,4 +7,6 @@ public record AppointmentViewModel(
     AppointmentStatus Status,
     DateTime Date,
     string Notes,
-    string Location);
+    string Location,
+    DateTime? DateProposed,
+    string? RescheduleMessage);
