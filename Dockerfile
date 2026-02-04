@@ -1,36 +1,15 @@
-
-# -----------------------------
-# Build stage
-# -----------------------------
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:9.0@sha256:3fcf6f1e809c0553f9feb222369f58749af314af6f063f389cbd2f913b4ad556 AS build
 WORKDIR /app
 
-COPY src/Adoption.API/Adoption.API.csproj src/Adoption.API/
-COPY src/Adoption.Domain/Adoption.Domain.csproj src/Adoption.Domain/
-COPY src/Adoption.Infrastructure/Adoption.Infrastructure.csproj src/Adoption.Infrastructure/
-COPY src/Shared/Shared.csproj src/Shared/
+# Copy everything
+COPY . ./
+# Restore as distinct layers
+RUN dotnet restore
+# Build and publish a release
+RUN dotnet publish -o out
 
-RUN dotnet restore src/Adoption.API/Adoption.API.csproj
-
-# Copiamos el resto del código
-COPY . .
-
-# Publicamos
-RUN dotnet publish src/Adoption.API/Adoption.API.csproj \
-    -c Release \
-    -o /out \
-    /p:UseAppHost=false
-
-# -----------------------------
-# Runtime stage
-# -----------------------------
-FROM mcr.microsoft.com/dotnet/aspnet:8.0
+# Build runtime image
+FROM mcr.microsoft.com/dotnet/aspnet:9.0@sha256:b4bea3a52a0a77317fa93c5bbdb076623f81e3e2f201078d89914da71318b5d8
 WORKDIR /app
-
-COPY --from=build /out .
-
-ENV ASPNETCORE_URLS=http://+:8080
-EXPOSE 8080
-
+COPY --from=build /app/out .
 ENTRYPOINT ["dotnet", "Adoption.API.dll"]
-
