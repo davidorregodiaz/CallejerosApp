@@ -23,7 +23,7 @@ public class AnimalMapper(IMinioService minioService) : IAnimalMapper
             OwnerId: animal.OwnerId.Value,
             Name: animal.Name,
             Species: animal.Species,
-            Breed: animal.Breed,
+            Breed: animal.Localization,
             Age: animal.Age,
             Description: animal.Description,
             MedicalRecord: new MedicalViewModel(

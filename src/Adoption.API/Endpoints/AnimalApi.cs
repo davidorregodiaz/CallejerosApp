@@ -69,7 +69,7 @@ public static class AnimalApi
         {
             Name = request.Name,
             Age = request.Age,
-            Breed = request.Breed,
+            Localization = request.Breed,
             Species = request.Species,
             Description = request.Description,
             HealthState = request.HealthState,

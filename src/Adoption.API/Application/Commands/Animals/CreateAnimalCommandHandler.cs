@@ -46,7 +46,7 @@ public class CreateAnimalCommandHandler(
                 age: command.Age,
                 description: command.Description,
                 ownerId: command.OwnerId,
-                breed: command.Breed,
+                localization: command.Localization,
                 species: command.Species,
                 aditionalImages:additionalImagesPaths,
                 principalImage: principalImagePath,

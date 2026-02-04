@@ -15,7 +15,7 @@ public class CreateAnimalCommandValidator : AbstractValidator<CreateAnimalComman
             .MaximumLength(100)
             .WithMessage("Name cannot exceed 100 characters");
         
-        RuleFor(x => x.Breed)
+        RuleFor(x => x.Localization)
             .NotEmpty()
             .WithMessage("Breed is required")
             .MinimumLength(3)

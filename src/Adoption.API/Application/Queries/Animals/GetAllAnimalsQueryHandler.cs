@@ -1,14 +1,11 @@
 ﻿using Adoption.API.Abstractions;
-using Adoption.API.Application.Commands.Animals;
 using Adoption.API.Application.Models;
 using Adoption.API.Application.Services.Mappers;
-using Adoption.API.Application.Services.Minio;
 using Adoption.API.Extensions;
 using Adoption.Domain.AggregatesModel.AnimalAggregate;
 using Adoption.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
 using Shared;
-using Shared.Utilities;
 
 namespace Adoption.API.Application.Queries.Animals;
 
@@ -17,7 +14,9 @@ public class GetAllAnimalsQueryHandler(AdoptionDbContext ctx, IAnimalMapper anim
 {
     public async Task<Result<PaginatedResponse<AnimalViewModel>>> HandleAsync(GetAllAnimalsQuery query, CancellationToken cancellationToken)
     {
-        var queryable = ctx.Animals.AsNoTracking().AsQueryable();
+        var queryable = ctx.Animals
+            .Where(a => a.Status != AnimalStatus.Adopted || a.Status == AnimalStatus.Hide)
+            .AsNoTracking().AsQueryable();
 
         if (!queryable.Any())
             return Result<PaginatedResponse<AnimalViewModel>>.FromFailure("No animals available");
@@ -37,10 +36,10 @@ public class GetAllAnimalsQueryHandler(AdoptionDbContext ctx, IAnimalMapper anim
             queryable = queryable.Where(x => x.NormalizedName.Contains(normalizedName));
         }
 
-        if (!string.IsNullOrEmpty(query.Breed))
+        if (!string.IsNullOrEmpty(query.Localization))
         {
-            string normalizedBreed = query.Breed.Trim().ToLower();
-            queryable = queryable.Where(x => x.NormalizedBreed.Contains(normalizedBreed));
+            string normalizedLocalization = query.Localization.Trim().ToLower();
+            queryable = queryable.Where(x => x.NormalizedLocalization.Contains(normalizedLocalization));
         }
 
         if (!string.IsNullOrEmpty(query.Species))
@@ -60,7 +59,6 @@ public class GetAllAnimalsQueryHandler(AdoptionDbContext ctx, IAnimalMapper anim
         
         animals = animals.OrderByProperty(query.SortBy, query.IsDescending)
             .PaginatePage(page, pageSize);
-        
 
         var paginatedResponse = new PaginatedResponse<AnimalViewModel>
         {

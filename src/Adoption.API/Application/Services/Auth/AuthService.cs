@@ -104,6 +104,11 @@ public class AuthService(
             return Result<TokenViewModel>.FromData(tokenDto);
         }
 
+        foreach (var error in result.Errors)
+        {
+            Console.WriteLine(error.Description);
+        }
+        
         await minioService.DeleteBlob(imagePath, CancellationToken.None);
 
         return Result<TokenViewModel>.FromFailure($"User {registerVm.Email} registration failed");
@@ -164,5 +169,21 @@ public class AuthService(
             "requester" => Roles.REQUESTER,
             _ => throw new ArgumentOutOfRangeException(nameof(role), role, null)
         };
+    }
+
+
+    public async Task<Result> ChangePassword(ChangePasswordViewModel changePasswordViewModel, string userId)
+    {
+        var user = await userManager.FindByIdAsync(userId);
+
+        if (user is null)
+            return Result.FromFailure($"User with id {userId} not found", 500);
+
+        var result = await userManager.ChangePasswordAsync(user, changePasswordViewModel.CurrentPassword, changePasswordViewModel.NewPassword);
+        
+        if(result.Succeeded)
+            return Result.FromSuccess("Password changed successfully");
+        
+        return Result.FromFailure("Password change failed");
     }
 }

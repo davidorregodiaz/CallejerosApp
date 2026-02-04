@@ -39,8 +39,9 @@ public class Appointment : Entity
     public void Reschedule(DateTime newDate, string?  rescheduleMessage)
     {
         if (Status == AppointmentStatus.Cancelled || Status == AppointmentStatus.Completed)
-            throw new AdoptionDomainException("Cannot reschedule a cancelled appointment.");
-
+            throw new AdoptionDomainException($"Cannot reschedule a {Status} appointment.");
+        
+        Status = AppointmentStatus.RescheduleRequested;
         DateProposed = newDate;
         RescheduleMessage = rescheduleMessage ?? "";
     }
@@ -56,6 +57,11 @@ public class Appointment : Entity
         {
             throw new AdoptionDomainException("Cannot schedule a cancelled, completed or already scheduled appointment.");
         }
+    }
+    
+    public void Complete()
+    {
+        Status = AppointmentStatus.Completed;
     }
 
     public void Cancel()

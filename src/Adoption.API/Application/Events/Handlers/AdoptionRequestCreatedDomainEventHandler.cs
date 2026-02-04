@@ -36,7 +36,7 @@ public class AdoptionRequestCreatedDomainEventHandler(
             Data: new Dictionary<string, string>()
             {
                 ["RequesterName"] = user.UserName!, 
-                ["AnimalBreed"] =  animal.Breed,
+                ["AnimalBreed"] =  animal.Localization,
                 ["AnimalName"] =  animal.Name,
                 ["RequestDate"] = domainEvent.OcurredOn.ToString("yyyy-MM-dd HH:mm:ss"),
             },
