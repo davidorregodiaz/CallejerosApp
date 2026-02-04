@@ -1,15 +1,36 @@
-# syntax=docker/dockerfile:1
 
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:9.0-alpine AS build
-COPY . /source
-WORKDIR /source/src/Adoption.API
-ENV ASPNETCORE_ENVIRONMENT=Development
-ARG TARGETARCH
-RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages \
-    dotnet publish -a ${TARGETARCH/amd64/x64} --use-current-runtime --self-contained false -o /app
-
-FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine AS final
+# -----------------------------
+# Build stage
+# -----------------------------
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /app
-COPY --from=build /app .
-USER $APP_UID
+
+COPY src/Adoption.API/Adoption.API.csproj src/Adoption.API/
+COPY src/Adoption.Domain/Adoption.Domain.csproj src/Adoption.Domain/
+COPY src/Adoption.Infrastructure/Adoption.Infrastructure.csproj src/Adoption.Infrastructure/
+COPY src/Shared/Shared.csproj src/Shared/
+
+RUN dotnet restore src/Adoption.API/Adoption.API.csproj
+
+# Copiamos el resto del código
+COPY . .
+
+# Publicamos
+RUN dotnet publish src/Adoption.API/Adoption.API.csproj \
+    -c Release \
+    -o /out \
+    /p:UseAppHost=false
+
+# -----------------------------
+# Runtime stage
+# -----------------------------
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
+WORKDIR /app
+
+COPY --from=build /out .
+
+ENV ASPNETCORE_URLS=http://+:8080
+EXPOSE 8080
+
 ENTRYPOINT ["dotnet", "Adoption.API.dll"]
+
