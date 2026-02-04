@@ -28,6 +28,7 @@ using (var scope = app.Services.CreateScope())
 {
     var seeder = scope.ServiceProvider.GetRequiredService<IDbSeeder<AdoptionDbContext>>();
     var context = scope.ServiceProvider.GetRequiredService<AdoptionDbContext>();
+    context.Database.Migrate();
     await seeder.SeedAsync(context);
 }
 
@@ -45,12 +46,5 @@ app.MapGroup("/api")
     .MapUserEndpoints();
 
 app.MapGet("/hello", () => "Hello World!");
-
-
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<AdoptionDbContext>();
-    db.Database.Migrate();
-}
 
 await app.RunAsync("http://0.0.0.0:5239");
