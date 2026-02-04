@@ -3,6 +3,7 @@ using Adoption.API.Application.Services.DbSeeder;
 using Adoption.API.Endpoints;
 using Adoption.API.Extensions;
 using Adoption.Infrastructure.Context;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,5 +45,12 @@ app.MapGroup("/api")
     .MapUserEndpoints();
 
 app.MapGet("/hello", () => "Hello World!");
+
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AdoptionDbContext>();
+    db.Database.Migrate();
+}
 
 await app.RunAsync("http://0.0.0.0:5239");
