@@ -46,7 +46,7 @@ public class UpdateAnimalCommandHandler(
                 name: command.Name ?? animal.Name,
                 age: command.Age ?? animal.Age,
                 description: command.Description ?? animal.Description,
-                breed: command.Breed ?? animal.Breed,
+                breed: command.Breed ?? animal.Localization,
                 species: command.Species ?? animal.Species,
                 principalImage: principalImagePath ?? animal.PrincipalImage,
                 aditionalImages: additionalImagesPaths.Any() ? additionalImagesPaths : animal.AdditionalImagesUrl?.ToList()

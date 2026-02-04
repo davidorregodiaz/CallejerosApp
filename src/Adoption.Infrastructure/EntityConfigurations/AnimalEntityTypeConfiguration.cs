@@ -32,8 +32,8 @@ public class AnimalEntityTypeConfiguration
             .HasColumnName("Age")
             .IsRequired();
 
-        animalConfiguration.Property(a => a.Breed)
-           .HasColumnName("Breed")
+        animalConfiguration.Property(a => a.Localization)
+           .HasColumnName("Localization")
            .IsRequired()
            .HasMaxLength(50);
 

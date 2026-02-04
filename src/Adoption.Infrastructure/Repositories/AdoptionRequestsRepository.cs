@@ -34,6 +34,6 @@ public class AdoptionRequestsRepository(AdoptionDbContext ctx) : IAdoptionReques
     {
         return await ctx.AdoptionRequests
             .AnyAsync(x => x.RequesterId == userId && 
-                           x.Status != AdoptionStatus.Completed, cancellationToken);
+                           x.Status != AdoptionStatus.Completed && x.Status != AdoptionStatus.Rejected, cancellationToken);
     }
 }

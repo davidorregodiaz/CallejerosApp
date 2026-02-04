@@ -1,9 +1,11 @@
 ﻿using Adoption.API.Abstractions;
 using Adoption.API.Application.Commands.AdoptionRequests;
+using Adoption.API.Application.Commands.Appointments;
 using Adoption.API.Application.Models;
 using Adoption.API.Application.Queries;
 using Adoption.API.Application.Queries.AdoptionRequests;
 using Adoption.API.Extensions;
+using Adoption.Infrastructure.Migrations;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,6 +18,46 @@ public static class AdoptionApi
         var adoptionApi = app
             .MapGroup("/adoptions")
             .WithTags("Adoptions");
+        
+        adoptionApi.MapPost("/{adoptionRequestId:guid}/appointments", CreateAppointmentAsync)
+            .Produces<Ok<AdoptionViewModel>>()
+            .ProducesProblem(statusCode: StatusCodes.Status500InternalServerError)
+            .ProducesValidationProblem()
+            .RequireAuthorization("OwnerPolicy");
+
+        adoptionApi.MapPut("/{adoptionRequestId:guid}/appointments/{appointmentId:guid}/reschedule", RescheduleAppointmentAsync)
+            .WithSummary("Marks an appointment from an adoption request as requested for reschedulation.")
+            .Produces<Ok>(statusCode: StatusCodes.Status200OK)
+            .ProducesValidationProblem()
+            .ProducesProblem(statusCode: StatusCodes.Status500InternalServerError)
+            .RequireAuthorization("OwnerRequesterPolicy");
+        
+        adoptionApi.MapPut("/{adoptionRequestId:guid}/appointments/{appointmentId:guid}/schedule", ScheduleAppointment)
+            .WithSummary("Marks an appointment from an adoption request as scheduled")
+            .Produces<Ok>(statusCode: StatusCodes.Status200OK)
+            .ProducesValidationProblem()
+            .ProducesProblem(statusCode: StatusCodes.Status500InternalServerError)
+            .RequireAuthorization("OwnerRequesterPolicy");
+        
+        adoptionApi.MapPut("/{adoptionRequestId:guid}/appointments/{appointmentId:guid}/complete", CompleteAppointment)
+            .WithSummary("Marks an appointment from an adoption request as cancelled")
+            .Produces<Ok>(statusCode: StatusCodes.Status200OK)
+            .ProducesValidationProblem()
+            .ProducesProblem(statusCode: StatusCodes.Status500InternalServerError)
+            .RequireAuthorization("OwnerRequesterPolicy");
+        
+        adoptionApi.MapPut("/{adoptionRequestId:guid}/appointments/{appointmentId:guid}/cancel", CancelAppointment)
+            .WithSummary("Marks an appointment from an adoption request as cancelled")
+            .Produces<Ok>(statusCode: StatusCodes.Status200OK)
+            .ProducesValidationProblem()
+            .ProducesProblem(statusCode: StatusCodes.Status500InternalServerError)
+            .RequireAuthorization("OwnerRequesterPolicy");
+        
+        adoptionApi.MapDelete("/{adoptionRequestId:guid}/appointments/{AppointmentId:guid}/", DeleteAppointmentAsync)
+            .WithSummary("Deletes an appointment from an adoption request")
+            .Produces<Ok>()
+            .ProducesProblem(statusCode: StatusCodes.Status500InternalServerError)
+            .RequireAuthorization("OwnerPolicy");
 
         adoptionApi.MapPost("/", CreateAdoptionRequestAsync)
             .Produces<CreatedAtRoute<AdoptionViewModel>>(StatusCodes.Status201Created)
@@ -41,7 +83,6 @@ public static class AdoptionApi
             .WithSummary("Deletes an adoption request")
             .Produces<NoContent>()
             .ProducesProblem(statusCode: StatusCodes.Status500InternalServerError)
-            .ProducesValidationProblem()
             .RequireAuthorization("RequesterPolicy", "OwnerPolicy");
 
         adoptionApi.MapPut("/{Id:guid}", UpdateAdoptionRequestAsync)
@@ -53,8 +94,94 @@ public static class AdoptionApi
         return app;
     }
 
+    private static async Task<Results<Ok, ProblemHttpResult>> CancelAppointment(
+        [FromRoute] Guid adoptionRequestId,
+        [FromRoute] Guid appointmentId,
+        ICommandHandler<CancelAppointmentCommand> handler,
+        CancellationToken cancellationToken = default)
+    {
+        var command = new CancelAppointmentCommand(
+            AdoptionRequestId: adoptionRequestId,
+            AppointmentId: appointmentId);
+            
+        await handler.HandleAsync(command,cancellationToken);
+        return TypedResults.Ok();
+    }
     
+    private static async Task<Results<Ok, ProblemHttpResult>> CompleteAppointment(
+        [FromRoute] Guid adoptionRequestId,
+        [FromRoute] Guid appointmentId,
+        ICommandHandler<CompleteAppointmentCommand> handler,
+        CancellationToken cancellationToken = default)
+    {
+        var command = new CompleteAppointmentCommand(
+            AdoptionRequestId: adoptionRequestId,
+            AppointmentId: appointmentId);
+            
+        await handler.HandleAsync(command,cancellationToken);
+        return TypedResults.Ok();
+    }
+    
+    private static async Task<Results<Ok, ProblemHttpResult>> ScheduleAppointment(
+        [FromRoute] Guid adoptionRequestId,
+        [FromRoute] Guid appointmentId,
+        ICommandHandler<ScheduleAppointmentCommand> handler,
+        CancellationToken cancellationToken = default)
+    {
+        var command = new ScheduleAppointmentCommand(
+            AdoptionRequestId: adoptionRequestId,
+            AppointmentId: appointmentId);
+            
+        await handler.HandleAsync(command,cancellationToken);
+        return TypedResults.Ok();
+    }
 
+    private static async Task<Results<Ok, ProblemHttpResult>> DeleteAppointmentAsync(
+        [FromRoute] Guid adoptionRequestId,
+        [FromRoute] Guid appointmentId,
+        ICommandHandler<DeleteAppointmentCommand> handler,
+        CancellationToken cancellationToken = default)
+    {
+        var command = new DeleteAppointmentCommand(
+            AppointmentId: appointmentId,
+            AdoptionRequestId: adoptionRequestId);
+        
+        await handler.HandleAsync(command, cancellationToken);
+        return TypedResults.Ok();
+    }
+    
+    private static async Task<Results<Ok, ProblemHttpResult>> RescheduleAppointmentAsync(
+        [FromRoute] Guid adoptionRequestId,
+        [FromRoute] Guid appointmentId,
+        [FromBody] RescheduleAppointmentRequest request,
+        ICommandHandler<RescheduleAppointmentCommand> handler,
+        CancellationToken cancellationToken = default)
+    {
+        var command = new RescheduleAppointmentCommand(
+            AdoptionRequestId: adoptionRequestId,
+            AppointmentId: appointmentId,
+            DateProposed: request.DateProposed,
+            RescheduleMessage: string.IsNullOrEmpty(request.RescheduleMessage) ? string.Empty : request.RescheduleMessage);
+        
+        await handler.HandleAsync(command,cancellationToken);
+        return TypedResults.Ok();
+    }
+    
+    private static async Task<Results<Ok<AppointmentViewModel>, ProblemHttpResult>> CreateAppointmentAsync(
+        [FromRoute] Guid adoptionRequestId,
+        CreateAppointmentRequest request,
+        ICommandHandler<CreateAppointmentCommand, AppointmentViewModel> handler,
+        CancellationToken cancellationToken = default)
+    {
+        var command = new CreateAppointmentCommand(
+            AdoptionRequestid: adoptionRequestId, 
+            Date: request.Date,
+            Notes: request.Notes,
+            Location: request.Location);
+        
+        var response = await handler.HandleAsync(command,cancellationToken);
+        return TypedResults.Ok(response);
+    }
     private static async Task<Results<Ok<AdoptionViewModel>, ProblemHttpResult>> UpdateAdoptionRequestAsync(
         [FromRoute] Guid id,
         UpdateAdoptionRequest request,

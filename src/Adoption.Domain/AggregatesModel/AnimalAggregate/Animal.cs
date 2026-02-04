@@ -10,7 +10,7 @@ public sealed class Animal
 {
     private Animal() : base(Guid.Empty) { } //EF
 
-    private Animal(AnimalId id, string name, int age, string description, OwnerId ownerId, string breed, string species,
+    private Animal(AnimalId id, string name, int age, string description, OwnerId ownerId, string localization, string species,
         MedicalRecord medicalRecord, List<string>? imagesPath, string principalImage, List<string> adoptionRequirements,
         Sex sex, Size size, List<Compatibility> compatibility, List<Personality> personality)
         : base(id.Value)
@@ -21,8 +21,8 @@ public sealed class Animal
         Age = age;
         Description = description;
         OwnerId = ownerId;
-        Breed = breed;
-        NormalizedBreed = breed.Trim().ToLower();
+        Localization = localization;
+        NormalizedLocalization = localization.Trim().ToLower();
         NormalizedSpecies = species.Trim().ToLower();
         Species = species;
         _aditionalImages = imagesPath ?? new List<string>();
@@ -43,8 +43,8 @@ public sealed class Animal
     public MedicalRecord MedicalRecord { get; private set; }
     public int Age { get; private set; }
     public AnimalStatus Status { get; private set; }
-    public string Breed { get; private set; }
-    public string NormalizedBreed { get; private set; }
+    public string Localization { get; private set; }
+    public string NormalizedLocalization { get; private set; }
     public string Species { get; private set; }
     public string NormalizedSpecies { get; private set; }
     public string Description { get; private set; }
@@ -64,7 +64,7 @@ public sealed class Animal
         int age,
         string description,
         Guid ownerId,
-        string breed,
+        string localization,
         string species,
         Sex animalSex,
         List<string>? aditionalImages,
@@ -87,7 +87,7 @@ public sealed class Animal
             age: age,
             description: description,
             ownerId: new OwnerId(ownerId),
-            breed: breed,
+            localization: localization,
             species: species,
             imagesPath: aditionalImages,
             principalImage: principalImage,
@@ -123,7 +123,7 @@ public sealed class Animal
             Description = description;
 
         if (!string.IsNullOrEmpty(breed))
-            Breed = breed;
+            Localization = breed;
 
         if (!string.IsNullOrEmpty(species))
             Species = species;
@@ -146,30 +146,26 @@ public sealed class Animal
         }
     }
 
-    void MarkAnimalAsAdopted()
+    public void MarkAnimalAsAdopted()
     {
         Status = AnimalStatus.Adopted;
     }
 
-    void AnimalEnteredAdoptionProcess()
+    public void MarkAnimalAsInAdoptionProcess()
     {
         Status = AnimalStatus.InProcess;
     }
 
-    void MarkAnimalAsInAdoption()
+    public void MarkAnimalAsInAdoption()
     {
         Status = AnimalStatus.Adoption;
     }
 
-    void HideAnimal()
+    public void HideAnimal()
     {
         Status = AnimalStatus.Hide;
     }
 
-    void AnimalRequestedForAdoptionProcess()
-    {
-        Status = AnimalStatus.Adoption;
-    }
 }
 
 [JsonConverter(typeof(JsonStringEnumConverter))]
@@ -185,8 +181,7 @@ public enum AnimalStatus
     Adoption,
     Adopted,
     InProcess,
-    Hide,
-    Requested
+    Hide
 }
 
 [JsonConverter(typeof(JsonStringEnumConverter))]

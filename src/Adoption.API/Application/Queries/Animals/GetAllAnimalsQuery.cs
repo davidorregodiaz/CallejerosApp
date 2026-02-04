@@ -7,7 +7,7 @@ namespace Adoption.API.Application.Queries.Animals;
 public record GetAllAnimalsQuery(
     string? Name,
     string? Species,
-    string? Breed,
+    string? Localization,
     int? Age,
     Guid? OwnerId,
     string SortBy = "AnimalId",

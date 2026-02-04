@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Adoption.API.Application.Events.Handlers;
 
-public class AdoptionRequestStatusChangeDomainEventHandler(
+public sealed class AdoptionRequestStatusChangeDomainEventHandler(
     IEmailQueue emailQueue,
     IAnimalRepository  animalRepository,
     IAdoptionRequestRepository adoptionRepository,
@@ -43,7 +43,7 @@ public class AdoptionRequestStatusChangeDomainEventHandler(
                 ["Status"] = domainEvent.Status.ToString(),
                 ["OwnerName"] = owner.UserName!,
                 ["AnimalName"] = animal.Name,
-                ["AnimalBreed"] = animal.Breed
+                ["AnimalBreed"] = animal.Localization
             },
             TemplateType: EmailTemplateType.AdoptionRequestStatusChange);
 

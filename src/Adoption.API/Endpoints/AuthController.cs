@@ -34,6 +34,26 @@ public class AuthController(IAuthService authService, ILogger<AuthController> lo
         return Results.BadRequest(new { error = result.Message });
     }
 
+    [HttpPut("password")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [EndpointSummary("Allow change the user password")]
+    public async Task<IResult> ChangePassword([FromBody] ChangePasswordViewModel changePasswordViewModel)
+    {
+        var userId = User.Claims
+            .FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)
+            ?.Value;
+
+        var result = await authService.ChangePassword(changePasswordViewModel, userId);
+        if (result.Success)
+        {
+            return Results.Ok(new { Message = "Password changed successfully" });
+        }
+
+        return Results.BadRequest(new { error = result.Message });
+    }
+
+
     [AllowAnonymous]
     [HttpPost("register")]
     [ProducesResponseType<TokenViewModel>(StatusCodes.Status200OK)]
@@ -67,7 +87,7 @@ public class AuthController(IAuthService authService, ILogger<AuthController> lo
     public async Task<IResult> RefreshToken()
     {
         var refreshToken = Request.Cookies["refresh_token"];
-        
+
         if (string.IsNullOrEmpty(refreshToken))
             return Results.BadRequest("Refresh token missing");
 
@@ -75,9 +95,9 @@ public class AuthController(IAuthService authService, ILogger<AuthController> lo
 
         if (!result.IsSuccessful(out var tokenDto))
             return Results.Unauthorized();
-        
+
         SetRefreshTokenCookie(tokenDto.RefreshToken);
-        
+
         return Results.Ok(new
         {
             AccessToken = tokenDto.AccessToken,

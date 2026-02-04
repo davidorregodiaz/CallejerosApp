@@ -40,6 +40,7 @@ app.MapControllers();
 app.MapGroup("/api")
     .MapAnimalEndpoints()
     .MapAdoptionEndpoints()
+    .MapAppointmentEndpoints()
     .MapUserEndpoints();
 
 app.MapGet("/hello", () => "Hello World!");
