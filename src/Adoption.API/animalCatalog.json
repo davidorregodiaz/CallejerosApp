@@ -1,7 +1,0 @@
-{
-  "AnimalCatalog": {
-    "Dog": ["Labrador", "Poodle", "Bulldog"],
-    "Cat": ["Persian", "Siamese", "MaineCoon"],
-    "Rabbit": ["HollandLop", "NetherlandDwarf"]
-  }
-}
