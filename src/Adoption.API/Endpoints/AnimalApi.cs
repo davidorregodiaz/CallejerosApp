@@ -6,7 +6,6 @@ using Adoption.API.Application.Queries.Animals;
 using Adoption.API.Extensions;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using Shared.Utilities;
 
 namespace Adoption.API.Endpoints;
 
