@@ -38,10 +38,6 @@
         <!-- <ProjectReference Include="..\Client\Client.csproj" /> -->
     <!-- </ItemGroup> -->
 
-    <ItemGroup>
-      <Folder Include="wwwroot\" />
-    </ItemGroup>
-
     <!-- <Target Name="PublishBlazorClient" AfterTargets="Build"> -->
         <!-- Compila el proyecto Blazor -->
         <!-- <MSBuild Projects="..\Client\Client.csproj" Targets="Publish" Properties="Configuration=$(Configuration)" /> -->
