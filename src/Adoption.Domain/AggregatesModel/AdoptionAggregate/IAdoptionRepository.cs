@@ -1,7 +1,5 @@
 
 using Adoption.Domain.SeedWork;
-using Shared;
-using Shared.Utilities;
 
 namespace Adoption.Domain.AggregatesModel.AdoptionAggregate;
 

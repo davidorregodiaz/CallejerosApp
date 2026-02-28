@@ -2,14 +2,12 @@
 using Adoption.API.Application.Models;
 using Adoption.API.Application.Services.Mappers;
 using Adoption.API.Extensions;
-using Adoption.Domain.AggregatesModel.AdoptionAggregate;
 using Adoption.Domain.AggregatesModel.AnimalAggregate;
 using Adoption.Domain.AggregatesModel.UserAggregate;
 using Adoption.Infrastructure.Context;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Shared;
-using Shared.Utilities;
 
 namespace Adoption.API.Application.Queries.AdoptionRequests;
 

@@ -4,12 +4,9 @@ using Adoption.API.Application.Commands.Users;
 using Adoption.API.Application.Models;
 using Adoption.API.Application.Models.User;
 using Adoption.API.Application.Queries;
-using Adoption.API.Application.Queries.AdoptionRequests;
 using Adoption.API.Application.Queries.Users;
 using Adoption.API.Extensions;
 using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
-using Shared.Utilities;
 
 namespace Adoption.API.Endpoints;
 

@@ -1,6 +1,5 @@
 using Adoption.API.Abstractions;
 using Adoption.API.Application.Models.User;
-using Shared.Utilities;
 
 namespace Adoption.API.Application.Queries.Users;
 
