@@ -1,4 +1,4 @@
-
+﻿
 using Adoption.API.Abstractions;
 using Adoption.API.Application.Models;
 using Adoption.API.Application.Services.Mappers;
@@ -9,9 +9,9 @@ using Adoption.Domain.AggregatesModel.AnimalAggregate;
 namespace Adoption.API.Application.Commands.Animals;
 
 public class CreateAnimalCommandHandler(
-    IAnimalRepository animalRepository, 
-    ILogger<CreateAnimalCommandHandler> logger, 
-    IMinioService minioService, 
+    IAnimalRepository animalRepository,
+    ILogger<CreateAnimalCommandHandler> logger,
+    IMinioService minioService,
     IAnimalMapper animalMapper) : ICommandHandler<CreateAnimalCommand, AnimalViewModel>
 {
     public async Task<AnimalViewModel> HandleAsync(
@@ -23,14 +23,14 @@ public class CreateAnimalCommandHandler(
         {
             string principalImagePath = string.Empty;
             var additionalImagesPaths = new List<string>();
-            
-            
+
+
             if (command.PrincipalImage.Length > 0)
             {
-                principalImagePath = await minioService.UploadBlob(command.PrincipalImage,null, cancellationToken);
-                uploadedImages.Add(principalImagePath);                
+                principalImagePath = await minioService.UploadBlob(command.PrincipalImage, null, cancellationToken);
+                uploadedImages.Add(principalImagePath);
             }
-            
+
             if (command.AdditionalImages != null)
             {
                 foreach (var additionalImage in command.AdditionalImages)
@@ -40,7 +40,7 @@ public class CreateAnimalCommandHandler(
                     additionalImagesPaths.Add(additionalImagePath);
                 }
             }
-            
+
             var animal = Animal.Create(
                 name: command.Name,
                 age: command.Age,
@@ -48,27 +48,27 @@ public class CreateAnimalCommandHandler(
                 ownerId: command.OwnerId,
                 localization: command.Localization,
                 species: command.Species,
-                aditionalImages:additionalImagesPaths,
+                aditionalImages: additionalImagesPaths,
                 principalImage: principalImagePath,
                 isDewormed: command.IsDewormed,
                 isStirilized: command.IsSterilized,
                 healthState: command.HealthState,
                 vaccine: command.Vaccine.NormalizeVaccines(),
                 animalSex: command.Sex,
-                adoptionRequirements:  (command.Requirements ?? new List<string>())
+                adoptionRequirements: (command.Requirements ?? new List<string>())
                 .SelectMany(r => r.Split(',', StringSplitOptions.RemoveEmptyEntries))
                 .Select(r => r.CapitalizeFirstWord())
                 .ToList(),
-                compatibility:  command.Compatibility,
-                personality:  command.Personality,
+                compatibility: command.Compatibility,
+                personality: command.Personality,
                 size: command.Size
             );
-            
+
             logger.LogInformation("Creating Animal - Animal : {@Animal}", animal);
 
             animalRepository.Add(animal);
             await animalRepository.UnitOfWork().SaveChangesAsync(cancellationToken);
-            
+
             return await animalMapper.MapToResponse(animal, cancellationToken);
         }
         catch (Exception e)
@@ -83,11 +83,11 @@ public class CreateAnimalCommandHandler(
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 logger.LogWarning("Error while deleting images from minio service @{Exception}", ex);
             }
-            
+
             throw;
         }
     }
